@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="te">
+<head>
+  <meta charset="utf-8">
+  <title>Storyforge Telugu shaping spike</title>
+  <style>
+    @font-face {
+      font-family: "Noto Sans Telugu Spike";
+      src: url("../assets/fonts/NotoSansTelugu-Regular.ttf") format("truetype");
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "Noto Sans Spike";
+      src: url("../assets/fonts/NotoSans-Variable.ttf") format("truetype");
+      font-weight: 100 900;
+    }
+    @page {
+      size: A4;
+      margin: 18mm 18mm 20mm;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #171717;
+      background: white;
+      font-family: "Noto Sans Telugu Spike", "Noto Sans Spike", sans-serif;
+      font-size: 11.5pt;
+      line-height: 1.55;
+    }
+    header {
+      border-bottom: 1px solid #a3a3a3;
+      margin-bottom: 12mm;
+      padding-bottom: 4mm;
+    }
+    h1 { font-size: 18pt; margin: 0 0 2mm; }
+    .meta { color: #525252; font-family: "Noto Sans Spike", sans-serif; font-size: 8.5pt; }
+    .notice {
+      border: 1px solid #f59e0b;
+      background: #fffbeb;
+      color: #78350f;
+      padding: 3mm 4mm;
+      margin-bottom: 10mm;
+      font-family: "Noto Sans Spike", sans-serif;
+      font-size: 8.5pt;
+    }
+    .screenplay { max-width: 154mm; margin: 0 auto; }
+    .block { break-inside: avoid; margin: 0 0 4mm; }
+    .scene-heading { font-weight: 700; text-transform: uppercase; border-top: 1px solid #d4d4d4; padding-top: 3mm; }
+    .action { margin-right: 10mm; }
+    .character { width: 70mm; margin: 7mm 0 0 62mm; text-align: center; font-weight: 700; }
+    .parenthetical { width: 64mm; margin-left: 55mm; }
+    .dialogue { width: 78mm; margin-left: 48mm; }
+    .transition { text-align: right; font-weight: 700; margin-top: 7mm; }
+    .corpus {
+      break-before: page;
+      font-size: 14pt;
+    }
+    .corpus h2 { font-family: "Noto Sans Spike", sans-serif; font-size: 15pt; }
+    .sample { border-bottom: 1px solid #e5e5e5; padding: 4mm 0; }
+    .label { display: block; font-family: "Noto Sans Spike", sans-serif; color: #737373; font-size: 8pt; }
+    footer { margin-top: 12mm; color: #737373; font-family: "Noto Sans Spike", sans-serif; font-size: 8pt; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>స్టోరీఫోర్జ్ స్టూడియో - తెలుగు రెండరింగ్ స్పైక్</h1>
+    <div class="meta">Windows Chromium baseline - Noto Sans Telugu 2.005 + Noto Sans fallback - 13 November 2026</div>
+  </header>
+
+  <div class="notice">SPIKE ONLY: A4 dimensions and screenplay spacing are test inputs, not an approved production preset. This PDF does not select the final pagination architecture.</div>
+
+  <main class="screenplay">
+    <div class="block scene-heading">INT. రవి ఇల్లు - రాత్రి</div>
+    <div class="block action">బయట వర్షం పడుతోంది. గదిలో వెలుతురు మసకగా ఉంది. గడియారం నెమ్మదిగా పన్నెండు కొడుతుంది.</div>
+    <div class="block character">రవి</div>
+    <div class="block parenthetical">(నెమ్మదిగా)</div>
+    <div class="block dialogue">నేను రేపు వస్తాను - తప్పకుండా!</div>
+    <div class="block action">సీత తలుపు వైపు చూస్తుంది. Hyderabad వెళ్లే చివరి బస్సు గురించి ఆమెకు గుర్తొస్తుంది.</div>
+    <div class="block character">సీత</div>
+    <div class="block dialogue">నువ్వు చెప్పిన మాట మర్చిపోకు.</div>
+    <div class="block transition">CUT TO:</div>
+  </main>
+
+  <section class="corpus">
+    <h2>Telugu golden corpus</h2>
+    <div class="sample"><span class="label">Aksharalu</span>అక్షరాలు</div>
+    <div class="sample"><span class="label">Gunintalu</span>గుణింతాలు</div>
+    <div class="sample"><span class="label">Vattulu</span>వత్తులు</div>
+    <div class="sample"><span class="label">Conjuncts</span>సంయుక్తాక్షరాలు</div>
+    <div class="sample"><span class="label">Long vowels</span>దీర్ఘాలు</div>
+    <div class="sample"><span class="label">Telugu numerals</span>౧౨౩౪౫౬౭౮౯౦</div>
+    <div class="sample"><span class="label">Mixed script fallback</span>రవి రేపు Hyderabad వెళ్తాడు.</div>
+    <div class="sample"><span class="label">Punctuation</span>నేను రేపు వస్తాను - తప్పకుండా!</div>
+  </section>
+
+  <footer>Font files and OFL-1.1 license texts are retained with the Sprint 01 spike.</footer>
+</body>
+</html>

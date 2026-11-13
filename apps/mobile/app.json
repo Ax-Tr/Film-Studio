@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Film Studio",
+    "slug": "film-studio",
+    "version": "0.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "minSdkVersion": 35
+    }
+  }
+}

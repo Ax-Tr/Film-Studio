@@ -1,0 +1,12 @@
+.next
+.pnpm-store
+.turbo
+artifacts
+coverage
+dist
+node_modules
+output
+spikes/**/node_modules
+tmp
+architecture.html
+pnpm-lock.yaml

@@ -1,0 +1,778 @@
+openapi: 3.1.0
+info:
+  title: STORYFORGE STUDIO — Foundation API (Proposed Contract)
+  version: 0.1.0-draft
+  description: >-
+    Proposed v1 REST contract for shared Next.js, Android and iOS clients.
+    No endpoints are deployed by this document. Authorization, project isolation,
+    idempotency, optimistic concurrency and offline operation replay are normative.
+servers:
+  - url: https://api.storyforge.example/v1
+    description: Placeholder deployment address; replace during implementation
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Projects
+  - name: Documents
+  - name: Scenes
+  - name: Characters
+  - name: Sync
+  - name: Conflicts
+  - name: AI
+  - name: Exports
+paths:
+  /auth/exchange:
+    post:
+      tags: [Auth]
+      summary: Exchange an authorization code with PKCE validation
+      security: []
+      operationId: exchangeAuthorizationCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizationExchange'
+      responses:
+        '200':
+          description: Session issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      description: Native clients supply a device-bound refresh credential; web uses an HttpOnly session cookie and CSRF defense.
+      summary: Rotate an authenticated session
+      operationId: refreshSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId: {type: string, format: uuid}
+                refreshToken: {type: string, description: Native clients only; web uses secure HttpOnly cookie}
+              required: [deviceId]
+      responses:
+        '200':
+          description: Token refresh completed; web may use HttpOnly cookies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionTokens'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutSession
+      summary: Revoke current session and refresh credential
+      responses:
+        '204': {description: Session revoked}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /me:
+    get:
+      tags: [Auth]
+      operationId: getCurrentUser
+      summary: Read identity and security-relevant session state
+      responses:
+        '200':
+          description: Current identity
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /projects:
+    get:
+      tags: [Projects]
+      operationId: listProjects
+      summary: List projects visible to caller
+      parameters:
+        - {in: query, name: cursor, schema: {type: string}}
+        - {in: query, name: limit, schema: {type: integer, minimum: 1, maximum: 100, default: 25}}
+      responses:
+        '200':
+          description: Account-scoped project page
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Project'}}
+                  nextCursor: {type: [string, 'null']}
+                required: [items, nextCursor]
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    post:
+      tags: [Projects]
+      operationId: createProject
+      summary: Create project, requiring idempotency key
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NewProject'}
+      responses:
+        '201':
+          description: Persisted project
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Project'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /projects/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Projects]
+      operationId: getProject
+      summary: Read authorized project metadata
+      responses:
+        '200':
+          description: Project found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Project'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [Projects]
+      operationId: patchProject
+      summary: Update project using version precondition
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: {type: string, minLength: 1, maxLength: 255}
+                genre: {type: [string, 'null']}
+                logline: {type: [string, 'null']}
+      responses:
+        '200':
+          description: Updated project
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Project'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /projects/{projectId}/documents:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Documents]
+      operationId: listDocuments
+      summary: List project documents
+      responses:
+        '200':
+          description: Documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Document'}
+    post:
+      tags: [Documents]
+      operationId: createDocument
+      summary: Create a typed story/screenplay document
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, documentType, language]
+              properties:
+                title: {type: string, minLength: 1}
+                documentType: {$ref: '#/components/schemas/DocumentType'}
+                language: {type: string, description: BCP-47 language tag}
+      responses:
+        '201':
+          description: Created document
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Document'}
+  /documents/{documentId}:
+    get:
+      tags: [Documents]
+      operationId: getDocument
+      summary: Read authorized document header
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document header
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Document'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /documents/{documentId}/scenes:
+    parameters:
+      - $ref: '#/components/parameters/DocumentId'
+    get:
+      tags: [Scenes]
+      operationId: listDocumentScenes
+      summary: Ordered scene headers with stable IDs
+      responses:
+        '200':
+          description: Ordered scenes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Scene'}
+    post:
+      tags: [Scenes]
+      operationId: createScene
+      summary: Create scene with client-provided stable ID for offline support
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, positionKey]
+              properties:
+                id: {type: string, format: uuid}
+                positionKey: {type: string}
+                intExt: {type: [string, 'null'], enum: [INT, EXT, INT_EXT, OTHER, null]}
+                timeOfDay: {type: [string, 'null']}
+      responses:
+        '201':
+          description: Created scene
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Scene'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /scenes/{sceneId}:
+    parameters:
+      - $ref: '#/components/parameters/SceneId'
+    patch:
+      tags: [Scenes]
+      operationId: updateSceneMetadata
+      summary: Update typed scene metadata without overwriting text
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timeOfDay: {type: [string, 'null']}
+                scenePurpose: {type: [string, 'null']}
+                emotionalTone: {type: [string, 'null']}
+                locationId: {type: [string, 'null'], format: uuid}
+      responses:
+        '200':
+          description: Updated scene
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Scene'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /scenes/{sceneId}/move:
+    post:
+      tags: [Scenes]
+      operationId: moveScene
+      summary: Move a scene relative to a stable neighbor; preserve scene ID
+      parameters:
+        - $ref: '#/components/parameters/SceneId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [baseVersion]
+              properties:
+                beforeSceneId: {type: [string, 'null'], format: uuid}
+                afterSceneId: {type: [string, 'null'], format: uuid}
+                baseVersion: {type: integer, minimum: 1}
+      responses:
+        '200':
+          description: Moved scene with updated position
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Scene'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /projects/{projectId}/characters:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      tags: [Characters]
+      operationId: listCharacters
+      summary: Character profiles visible to project member
+      responses:
+        '200':
+          description: Characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Character'}
+    post:
+      tags: [Characters]
+      operationId: createCharacter
+      summary: Create character profile
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [displayName]
+              properties:
+                displayName: {type: string, minLength: 1}
+                profile: {type: object, additionalProperties: true}
+                languageStyle: {type: object, additionalProperties: true}
+      responses:
+        '201':
+          description: Created character
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Character'}
+  /sync/push:
+    post:
+      tags: [Sync]
+      operationId: pushSyncOperations
+      summary: Idempotently apply a bounded batch of offline operations
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, operations]
+              properties:
+                projectId: {type: string, format: uuid}
+                operations:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items: {$ref: '#/components/schemas/ClientOperation'}
+      responses:
+        '200':
+          description: Per-operation applied/already-applied/conflict/rejected results
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SyncPushResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /sync/pull:
+    get:
+      tags: [Sync]
+      operationId: pullSyncOperations
+      summary: Read authoritative ordered change feed scoped to a project
+      parameters:
+        - {in: query, name: projectId, required: true, schema: {type: string, format: uuid}}
+        - {in: query, name: cursor, schema: {type: string}, description: Opaque project/device-bound cursor}
+        - {in: query, name: limit, schema: {type: integer, minimum: 1, maximum: 500, default: 100}}
+      responses:
+        '200':
+          description: Next page of operations or snapshot instructions
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SyncPullResponse'}
+        '410':
+          description: Cursor expired; authenticated snapshot resync required
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ApiError'}
+  /sync/ack:
+    post:
+      tags: [Sync]
+      operationId: acknowledgeSyncRevision
+      summary: Persist device cursor after local transactional apply
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, deviceId, serverRevision]
+              properties:
+                projectId: {type: string, format: uuid}
+                deviceId: {type: string, format: uuid}
+                serverRevision: {type: integer, minimum: 0}
+      responses:
+        '204': {description: Cursor acknowledged}
+  /projects/{projectId}/conflicts:
+    get:
+      tags: [Conflicts]
+      operationId: listSyncConflicts
+      summary: List unresolved, user-reviewable conflicts
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Conflict records
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/SyncConflict'}
+  /conflicts/{conflictId}/resolve:
+    post:
+      tags: [Conflicts]
+      operationId: resolveSyncConflict
+      summary: Apply explicit authorized conflict resolution
+      parameters:
+        - {in: path, name: conflictId, required: true, schema: {type: string, format: uuid}}
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [choice]
+              properties:
+                choice: {type: string, enum: [keepLocal, keepRemote, merge, saveAlternative]}
+                mergedPayload: {type: [object, 'null'], additionalProperties: true}
+      responses:
+        '200':
+          description: Confirmed resolution and new canonical revision
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resolved: {type: boolean}
+                  serverRevision: {type: integer, minimum: 1}
+                required: [resolved, serverRevision]
+        '409': {$ref: '#/components/responses/Conflict'}
+  /projects/{projectId}/ai/requests:
+    post:
+      tags: [AI]
+      operationId: createAiRequest
+      summary: Queue optional AI analysis of explicitly selected content
+      description: >-
+        Before calling this endpoint the UI must present the content scope, provider,
+        operation, cost estimate and third-party data notice for explicit approval.
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [taskType, configId, selectedSceneIds, consentConfirmed]
+              properties:
+                taskType: {type: string}
+                configId: {type: string, format: uuid}
+                selectedSceneIds:
+                  type: array
+                  items: {type: string, format: uuid}
+                consentConfirmed: {type: boolean, const: true}
+                maximumCostMinor: {type: integer, minimum: 0}
+      responses:
+        '202':
+          description: Accepted background job, not an applied script edit
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AIJob'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /projects/{projectId}/ai/history:
+    get:
+      tags: [AI]
+      operationId: listAiHistory
+      summary: Read project-scoped AI request and proposal history
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: AI job history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/AIJob'}
+  /documents/{documentId}/exports:
+    post:
+      tags: [Exports]
+      operationId: requestDocumentExport
+      summary: Start authoritative background document export
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format, preset]
+              properties:
+                format: {type: string, enum: [pdf, docx, txt, fountain, fdx, csv, xlsx]}
+                preset: {type: string, enum: [telugu_literary, telugu_industry, international, shooting, producer, confidential]}
+                options: {type: object, additionalProperties: true}
+      responses:
+        '202':
+          description: Async export job accepted
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ExportJob'}
+  /exports/{exportId}:
+    get:
+      tags: [Exports]
+      operationId: getExportJob
+      summary: Read export status and authorized download link when complete
+      parameters:
+        - {in: path, name: exportId, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Export job status
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ExportJob'}
+        '404': {$ref: '#/components/responses/NotFound'}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    SceneId:
+      name: sceneId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string, minLength: 8, maxLength: 200}
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: Quoted expected entity revision/ETag
+      schema: {type: string}
+  responses:
+    Unauthorized:
+      description: Authentication missing, invalid or expired
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    Forbidden:
+      description: Caller lacks effective permission in this project
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    NotFound:
+      description: Entity does not exist or is not visible to caller
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    Conflict:
+      description: Explicit concurrent modification conflict
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+  schemas:
+    ApiError:
+      type: object
+      required: [code, message, requestId]
+      properties:
+        code: {type: string, examples: [SCENE_VERSION_CONFLICT]}
+        message: {type: string}
+        requestId: {type: string}
+        details: {type: object, additionalProperties: true}
+        conflictId: {type: string, format: uuid}
+    AuthorizationExchange:
+      type: object
+      required: [code, codeVerifier, redirectUri, deviceId, platform]
+      properties:
+        code: {type: string}
+        codeVerifier: {type: string}
+        redirectUri: {type: string, format: uri}
+        deviceId: {type: string, format: uuid}
+        platform: {type: string, enum: [web, android, ios]}
+    SessionTokens:
+      type: object
+      required: [expiresInSeconds, userId]
+      properties:
+        accessToken: {type: string, description: Omitted from web JS responses when using HttpOnly BFF cookie sessions}
+        expiresInSeconds: {type: integer, minimum: 1}
+        userId: {type: string, format: uuid}
+        refreshToken: {type: string, description: Native secure-storage flow only; never in web JS payload}
+    User:
+      type: object
+      required: [id, email, displayName, locale]
+      properties:
+        id: {type: string, format: uuid}
+        email: {type: string, format: email}
+        displayName: {type: string}
+        locale: {type: string}
+    NewProject:
+      type: object
+      required: [id, title, defaultLanguage]
+      properties:
+        id: {type: string, format: uuid, description: Client-generated ID permits offline-first creation}
+        title: {type: string, minLength: 1, maxLength: 255}
+        defaultLanguage: {type: string, examples: [te]}
+        genre: {type: string}
+        logline: {type: string}
+        organisationId: {type: [string, 'null'], format: uuid}
+    Project:
+      allOf:
+        - {$ref: '#/components/schemas/NewProject'}
+        - type: object
+          required: [version, serverRevision, updatedAt]
+          properties:
+            version: {type: integer, minimum: 1}
+            serverRevision: {type: integer, minimum: 0}
+            updatedAt: {type: string, format: date-time}
+    DocumentType:
+      type: string
+      enum: [concept, one_line, logline, short_synopsis, detailed_synopsis, treatment, scene_outline, beat_sheet, sequence_breakdown, screenplay, dialogue_draft, revised_screenplay, shooting_script, production_draft]
+    Document:
+      type: object
+      required: [id, projectId, title, documentType, language, version]
+      properties:
+        id: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        title: {type: string}
+        documentType: {$ref: '#/components/schemas/DocumentType'}
+        language: {type: string}
+        version: {type: integer, minimum: 1}
+    Scene:
+      type: object
+      required: [id, projectId, documentId, positionKey, version, status]
+      properties:
+        id: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        documentId: {type: string, format: uuid}
+        positionKey: {type: string}
+        displayNumber: {type: [string, 'null']}
+        intExt: {type: [string, 'null'], enum: [INT, EXT, INT_EXT, OTHER, null]}
+        timeOfDay: {type: [string, 'null']}
+        locationId: {type: [string, 'null'], format: uuid}
+        scenePurpose: {type: [string, 'null']}
+        emotionalTone: {type: [string, 'null']}
+        version: {type: integer, minimum: 1}
+        status: {type: string, enum: [draft, in_review, approved, locked]}
+    Character:
+      type: object
+      required: [id, projectId, displayName, profile, languageStyle]
+      properties:
+        id: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        displayName: {type: string}
+        profile: {type: object, additionalProperties: true}
+        languageStyle: {type: object, additionalProperties: true}
+    ClientOperation:
+      type: object
+      required: [opId, projectId, deviceId, clientSequence, entityType, entityId, kind, payload, createdAtClient]
+      properties:
+        opId: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        deviceId: {type: string, format: uuid}
+        clientSequence: {type: integer, minimum: 1}
+        entityType: {type: string, examples: [scene]}
+        entityId: {type: string, format: uuid}
+        kind: {type: string, examples: [scene.metadata.patch, scene.crdt.update]}
+        baseVersion: {type: [integer, 'null'], minimum: 1}
+        payload: {type: object, additionalProperties: true}
+        crdtUpdateBase64: {type: string, contentEncoding: base64}
+        createdAtClient: {type: string, format: date-time}
+    SyncPushResult:
+      type: object
+      required: [opId, status]
+      properties:
+        opId: {type: string, format: uuid}
+        status: {type: string, enum: [applied, already_applied, conflict, rejected]}
+        serverRevision: {type: integer, minimum: 1}
+        conflictId: {type: string, format: uuid}
+        errorCode: {type: string}
+    SyncPushResponse:
+      type: object
+      required: [results, latestServerRevision]
+      properties:
+        results:
+          type: array
+          items: {$ref: '#/components/schemas/SyncPushResult'}
+        latestServerRevision: {type: integer, minimum: 0}
+    ServerOperation:
+      allOf:
+        - {$ref: '#/components/schemas/ClientOperation'}
+        - type: object
+          required: [serverRevision, acceptedAt]
+          properties:
+            serverRevision: {type: integer, minimum: 1}
+            acceptedAt: {type: string, format: date-time}
+    SyncPullResponse:
+      type: object
+      required: [operations, nextCursor, hasMore, latestServerRevision]
+      properties:
+        operations:
+          type: array
+          items: {$ref: '#/components/schemas/ServerOperation'}
+        nextCursor: {type: string}
+        hasMore: {type: boolean}
+        latestServerRevision: {type: integer, minimum: 0}
+        snapshotInstructions: {type: [object, 'null'], additionalProperties: true}
+    SyncConflict:
+      type: object
+      required: [id, projectId, entityId, reason, localPayload, status]
+      properties:
+        id: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        entityId: {type: string, format: uuid}
+        reason: {type: string}
+        basePayload: {type: [object, 'null'], additionalProperties: true}
+        localPayload: {type: object, additionalProperties: true}
+        remotePayload: {type: [object, 'null'], additionalProperties: true}
+        status: {type: string, enum: [pending, resolved, rejected]}
+    AIJob:
+      type: object
+      required: [id, projectId, taskType, status, createdAt]
+      properties:
+        id: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        taskType: {type: string}
+        status: {type: string, enum: [queued, running, completed, failed, cancelled]}
+        selectedSceneIds: {type: array, items: {type: string, format: uuid}}
+        createdAt: {type: string, format: date-time}
+    ExportJob:
+      type: object
+      required: [id, projectId, documentId, format, status]
+      properties:
+        id: {type: string, format: uuid}
+        projectId: {type: string, format: uuid}
+        documentId: {type: string, format: uuid}
+        format: {type: string, enum: [pdf, docx, txt, fountain, fdx, csv, xlsx]}
+        status: {type: string, enum: [queued, running, completed, failed, cancelled]}
+        signedDownloadUrl: {type: string, format: uri, description: Populated only after authorization and completion}
+        errorCode: {type: string}

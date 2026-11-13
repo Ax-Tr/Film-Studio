@@ -1,0 +1,26 @@
+{
+  "name": "storyforge-sprint-01-feasibility",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "shape:telugu": "tsx scripts/shape-telugu.ts"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.33.1",
+    "@tiptap/pm": "3.33.1",
+    "harfbuzzjs": "1.6.4",
+    "yjs": "13.6.33"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "happy-dom": "20.0.10",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "4.0.10"
+  }
+}

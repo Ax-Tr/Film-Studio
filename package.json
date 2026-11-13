@@ -1,0 +1,46 @@
+{
+  "name": "film-studio-platform",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Production foundation for the Film Studio web, mobile, API and worker applications.",
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=24.0.0 <25",
+    "pnpm": "10.20.0"
+  },
+  "scripts": {
+    "boundaries:check": "node scripts/verify-boundaries.mjs",
+    "build": "pnpm -r --workspace-concurrency=1 --if-present run build",
+    "check": "pnpm boundaries:check && pnpm secrets:check && pnpm config:check && pnpm lint && pnpm build && pnpm typecheck && pnpm db:test:migration && pnpm db:test:canonical && pnpm test",
+    "clean": "turbo run clean",
+    "config:check": "node scripts/validate-config.mjs",
+    "dev": "turbo run dev --parallel",
+    "db:test:migration": "tsx scripts/test-identity-migration.ts",
+    "db:test:canonical": "tsx scripts/test-canonical-model.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "infra:config": "docker compose --env-file .env -f infra/docker/compose.yaml config --quiet",
+    "infra:down": "docker compose --env-file .env -f infra/docker/compose.yaml down",
+    "infra:up": "docker compose --env-file .env -f infra/docker/compose.yaml up -d --wait",
+    "lint": "eslint apps packages workers scripts --max-warnings=0",
+    "secrets:check": "node scripts/scan-secrets.mjs",
+    "test": "pnpm -r --workspace-concurrency=1 --if-present run test",
+    "test:contract": "pnpm --filter @film-studio/contracts test",
+    "typecheck": "pnpm --filter @film-studio/screenplay-model build && pnpm --filter @film-studio/contracts build && pnpm --filter @film-studio/domain build && pnpm -r --workspace-concurrency=1 --if-present run typecheck"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.10.1",
+    "@typescript-eslint/eslint-plugin": "8.72.2",
+    "@typescript-eslint/parser": "8.72.2",
+    "eslint": "10.14.0",
+    "globals": "16.5.0",
+    "prettier": "3.10.1",
+    "tsx": "4.23.15",
+    "turbo": "2.11.11",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0",
+    "yaml": "2.9.1"
+  }
+}

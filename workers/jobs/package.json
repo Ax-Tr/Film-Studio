@@ -1,0 +1,22 @@
+{
+  "name": "@film-studio/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@film-studio/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
