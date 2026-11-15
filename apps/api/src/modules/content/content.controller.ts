@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { Response } from 'express';
 import {
   Body,
   Controller,
@@ -10,6 +11,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -17,7 +19,9 @@ import {
   createDocumentVersionRequestSchema,
   createSceneRequestSchema,
   deleteSceneRequestSchema,
+  importScriptRequestSchema,
   moveSceneRequestSchema,
+  restoreDocumentVersionRequestSchema,
   restoreSceneRequestSchema,
   updateDocumentRequestSchema,
 } from '@film-studio/contracts';
@@ -89,6 +93,19 @@ export class ContentController {
     );
   }
 
+  @Post('import')
+  importScript(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+    @Body() body: unknown,
+  ) {
+    return this.content.importScript(
+      this.context(request),
+      uuidSchema.parse(filmId),
+      importScriptRequestSchema.parse(body),
+    );
+  }
+
   @Post(':documentId/versions')
   createDocumentVersion(
     @Req() request: AuthenticatedRequest,
@@ -102,6 +119,81 @@ export class ContentController {
       uuidSchema.parse(documentId),
       createDocumentVersionRequestSchema.parse(body),
     );
+  }
+
+  @Get(':documentId/versions')
+  listDocumentVersions(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+    @Param('documentId') documentId: string,
+  ) {
+    return this.content.listDocumentVersions(
+      this.context(request),
+      uuidSchema.parse(filmId),
+      uuidSchema.parse(documentId),
+    );
+  }
+
+  @Get(':documentId/versions/:versionId')
+  getDocumentVersion(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+    @Param('documentId') documentId: string,
+    @Param('versionId') versionId: string,
+  ) {
+    return this.content.getDocumentVersion(
+      this.context(request),
+      uuidSchema.parse(filmId),
+      uuidSchema.parse(documentId),
+      uuidSchema.parse(versionId),
+    );
+  }
+
+  @Post(':documentId/versions/:versionId/restore')
+  restoreDocumentVersion(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+    @Param('documentId') documentId: string,
+    @Param('versionId') versionId: string,
+    @Body() body: unknown,
+  ) {
+    return this.content.restoreDocumentVersion(
+      this.context(request),
+      uuidSchema.parse(filmId),
+      uuidSchema.parse(documentId),
+      uuidSchema.parse(versionId),
+      restoreDocumentVersionRequestSchema.parse(body),
+    );
+  }
+
+  @Get(':documentId/export')
+  async exportDocument(
+    @Req() request: AuthenticatedRequest,
+    @Res({ passthrough: true }) response: Response,
+    @Param('filmId') filmId: string,
+    @Param('documentId') documentId: string,
+    @Query('format') formatQuery?: string,
+    @Query('versionId') versionIdQuery?: string,
+    @Query('watermark') watermarkQuery?: string,
+  ) {
+    const format = formatQuery === 'pdf' ? 'pdf' : 'fountain';
+    const versionId = versionIdQuery ? uuidSchema.parse(versionIdQuery) : undefined;
+    const watermark = watermarkQuery ? String(watermarkQuery) : undefined;
+
+    const result = await this.content.exportDocument(
+      this.context(request),
+      uuidSchema.parse(filmId),
+      uuidSchema.parse(documentId),
+      { format, ...(versionId ? { versionId } : {}), ...(watermark ? { watermark } : {}) },
+    );
+
+    response.setHeader('Content-Type', result.contentType);
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${result.filename}"`,
+    );
+
+    return result.data;
   }
 
   @Get(':documentId/scenes')

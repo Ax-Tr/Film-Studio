@@ -29,6 +29,9 @@ export interface TenantRepository {
     title: string,
   ): Promise<void>;
   listAccessibleFilms(userId: string): Promise<readonly AccessibleFilm[]>;
+  getFilm(userId: string, filmId: string): Promise<AccessibleFilm>;
+  archiveFilm(userId: string, filmId: string): Promise<void>;
+  restoreFilm(userId: string, filmId: string): Promise<void>;
   createInvitation(input: CreateInvitationRecord): Promise<void>;
   acceptInvitation(userId: string, tokenHash: Uint8Array): Promise<string>;
 }

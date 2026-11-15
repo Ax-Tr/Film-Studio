@@ -1,12 +1,16 @@
+import { createHash, randomUUID } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
 import {
   projectBlocks,
+  stableJson,
   type ScreenplayDocument,
 } from '@film-studio/screenplay-model';
 import { codedError } from '../modules/content/content.service.js';
 import type {
   ContentRepository,
   DocumentRecord,
+  DocumentVersionDetailRecord,
+  DocumentVersionSummaryRecord,
   MutationIdentity,
   SceneRecord,
 } from '../modules/content/content.repository.js';
@@ -437,6 +441,313 @@ export class PostgresContentRepository implements ContentRepository {
         documentId,
         documentVersion,
         snapshotSha256: Buffer.from(snapshotHash).toString('hex'),
+      };
+    });
+  }
+
+  async listDocumentVersions(
+    userId: string,
+    filmId: string,
+    documentId: string,
+  ): Promise<readonly DocumentVersionSummaryRecord[]> {
+    return this.transaction(userId, filmId, async (client) => {
+      const result = await client.query<{
+        id: string;
+        film_id: string;
+        document_id: string;
+        document_version: string;
+        schema_version: number;
+        snapshot_sha256: Buffer;
+        created_by: string;
+        created_at: Date | string;
+      }>(
+        `SELECT id, film_id, document_id, document_version, schema_version,
+                snapshot_sha256, created_by, created_at
+         FROM document_versions
+         WHERE film_id = $1 AND document_id = $2
+         ORDER BY document_version DESC`,
+        [filmId, documentId],
+      );
+      return result.rows.map((row) => ({
+        id: row.id,
+        filmId: row.film_id,
+        documentId: row.document_id,
+        documentVersion: Number(row.document_version),
+        schemaVersion: row.schema_version,
+        snapshotSha256: row.snapshot_sha256.toString('hex'),
+        createdBy: row.created_by,
+        createdAt: new Date(row.created_at).toISOString(),
+      }));
+    });
+  }
+
+  async getDocumentVersion(
+    userId: string,
+    filmId: string,
+    documentId: string,
+    versionId: string,
+  ): Promise<DocumentVersionDetailRecord | undefined> {
+    return this.transaction(userId, filmId, async (client) => {
+      const result = await client.query<{
+        id: string;
+        film_id: string;
+        document_id: string;
+        document_version: string;
+        schema_version: number;
+        snapshot: ScreenplayDocument;
+        snapshot_sha256: Buffer;
+        created_by: string;
+        created_at: Date | string;
+      }>(
+        `SELECT id, film_id, document_id, document_version, schema_version,
+                snapshot, snapshot_sha256, created_by, created_at
+         FROM document_versions
+         WHERE film_id = $1 AND document_id = $2 AND id = $3`,
+        [filmId, documentId, versionId],
+      );
+      const row = result.rows[0];
+      if (!row) return undefined;
+      return {
+        id: row.id,
+        filmId: row.film_id,
+        documentId: row.document_id,
+        documentVersion: Number(row.document_version),
+        schemaVersion: row.schema_version,
+        snapshot: row.snapshot,
+        snapshotSha256: row.snapshot_sha256.toString('hex'),
+        createdBy: row.created_by,
+        createdAt: new Date(row.created_at).toISOString(),
+      };
+    });
+  }
+
+  async restoreDocumentVersion(
+    mutation: MutationIdentity,
+    documentId: string,
+    versionId: string,
+    expectedDocumentVersion: number,
+  ): Promise<DocumentVersionDetailRecord> {
+    return this.mutate(mutation, 'document.version.restore', async (client) => {
+      await this.lockDocument(
+        client,
+        mutation.filmId,
+        documentId,
+        expectedDocumentVersion,
+      );
+      const histResult = await client.query<{
+        snapshot: ScreenplayDocument;
+        schema_version: number;
+      }>(
+        `SELECT snapshot, schema_version
+         FROM document_versions
+         WHERE film_id = $1 AND document_id = $2 AND id = $3`,
+        [mutation.filmId, documentId, versionId],
+      );
+      const histRow = histResult.rows[0];
+      if (!histRow) throw codedError('MODEL_RESOURCE_NOT_FOUND');
+
+      const snapshot = histRow.snapshot;
+      const newVersionId = randomUUID();
+      const newDocumentVersion = expectedDocumentVersion + 1;
+      const serialized = stableJson(snapshot);
+      const snapshotHash = createHash('sha256')
+        .update(serialized, 'utf8')
+        .digest();
+
+      await client.query('SET CONSTRAINTS ALL DEFERRED');
+
+      // Clear existing order
+      await client.query(
+        `DELETE FROM document_scene_order WHERE film_id = $1 AND document_id = $2`,
+        [mutation.filmId, documentId],
+      );
+
+      const activeSceneIds = new Set<string>();
+      for (let i = 0; i < snapshot.scenes.length; i++) {
+        const sc = snapshot.scenes[i]!;
+        activeSceneIds.add(sc.id);
+        // Upsert scene
+        await client.query(
+          `INSERT INTO scenes (id, film_id, document_id, version, deleted_at, updated_at)
+           VALUES ($1, $2, $3, 1, NULL, now())
+           ON CONFLICT (film_id, document_id, id)
+           DO UPDATE SET deleted_at = NULL, version = scenes.version + 1, updated_at = now()`,
+          [sc.id, mutation.filmId, documentId],
+        );
+        // Insert order
+        await client.query(
+          `INSERT INTO document_scene_order (film_id, document_id, scene_id, position)
+           VALUES ($1, $2, $3, $4)`,
+          [mutation.filmId, documentId, sc.id, i],
+        );
+      }
+
+      // Soft delete scenes that are not in restored snapshot
+      if (activeSceneIds.size > 0) {
+        await client.query(
+          `UPDATE scenes SET deleted_at = now(), version = version + 1, updated_at = now()
+           WHERE film_id = $1 AND document_id = $2 AND id NOT IN (${Array.from(activeSceneIds)
+             .map((_, idx) => `$${idx + 3}`)
+             .join(', ')})`,
+          [mutation.filmId, documentId, ...Array.from(activeSceneIds)],
+        );
+      } else {
+        await client.query(
+          `UPDATE scenes SET deleted_at = now(), version = version + 1, updated_at = now()
+           WHERE film_id = $1 AND document_id = $2`,
+          [mutation.filmId, documentId],
+        );
+      }
+
+      // Insert new document version
+      await client.query(
+        `INSERT INTO document_versions (
+           id, film_id, document_id, document_version, schema_version,
+           snapshot, snapshot_sha256, created_by
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          newVersionId,
+          mutation.filmId,
+          documentId,
+          newDocumentVersion,
+          snapshot.schemaVersion,
+          snapshot,
+          snapshotHash,
+          mutation.userId,
+        ],
+      );
+
+      // Reproject blocks
+      await client.query(
+        `DELETE FROM screenplay_block_projections WHERE film_id = $1 AND document_id = $2`,
+        [mutation.filmId, documentId],
+      );
+
+      for (const block of projectBlocks(snapshot)) {
+        await client.query(
+          `INSERT INTO screenplay_block_projections (
+             id, film_id, document_id, scene_id, source_document_version_id,
+             position, block_type, text_content, attributes
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            block.blockId,
+            mutation.filmId,
+            documentId,
+            block.sceneId,
+            newVersionId,
+            block.blockIndex,
+            block.type,
+            block.text,
+            block.attributes,
+          ],
+        );
+      }
+
+      await this.bumpDocument(client, mutation.filmId, documentId);
+
+      return {
+        id: newVersionId,
+        filmId: mutation.filmId,
+        documentId,
+        documentVersion: newDocumentVersion,
+        schemaVersion: snapshot.schemaVersion,
+        snapshot,
+        snapshotSha256: snapshotHash.toString('hex'),
+        createdBy: mutation.userId,
+        createdAt: new Date().toISOString(),
+      };
+    });
+  }
+
+  async importScript(
+    mutation: MutationIdentity,
+    input: {
+      readonly documentId: string;
+      readonly title: string;
+      readonly kind: string;
+      readonly language: string;
+      readonly document: ScreenplayDocument;
+    },
+  ): Promise<{
+    readonly document: DocumentRecord;
+    readonly versionId: string;
+  }> {
+    return this.mutate(mutation, 'document.import', async (client) => {
+      const docResult = await client.query<DocumentRow>(
+        `INSERT INTO documents (id, film_id, title, kind, language, version, created_by)
+         VALUES ($1, $2, $3, $4, $5, 1, $6)
+         RETURNING id, film_id, title, kind, language, version, archived_at, deleted_at`,
+        [
+          input.documentId,
+          mutation.filmId,
+          input.title,
+          input.kind,
+          input.language,
+          mutation.userId,
+        ],
+      );
+      const doc = this.document(docResult.rows[0]!);
+      const versionId = randomUUID();
+      const serialized = stableJson(input.document);
+      const snapshotHash = createHash('sha256')
+        .update(serialized, 'utf8')
+        .digest();
+
+      await client.query('SET CONSTRAINTS ALL DEFERRED');
+
+      for (let i = 0; i < input.document.scenes.length; i++) {
+        const sc = input.document.scenes[i]!;
+        await client.query(
+          `INSERT INTO scenes (id, film_id, document_id, version)
+           VALUES ($1, $2, $3, 1)`,
+          [sc.id, mutation.filmId, input.documentId],
+        );
+        await client.query(
+          `INSERT INTO document_scene_order (film_id, document_id, scene_id, position)
+           VALUES ($1, $2, $3, $4)`,
+          [mutation.filmId, input.documentId, sc.id, i],
+        );
+      }
+
+      await client.query(
+        `INSERT INTO document_versions (
+           id, film_id, document_id, document_version, schema_version,
+           snapshot, snapshot_sha256, created_by
+         ) VALUES ($1, $2, $3, 1, $4, $5, $6, $7)`,
+        [
+          versionId,
+          mutation.filmId,
+          input.documentId,
+          input.document.schemaVersion,
+          input.document,
+          snapshotHash,
+          mutation.userId,
+        ],
+      );
+
+      for (const block of projectBlocks(input.document)) {
+        await client.query(
+          `INSERT INTO screenplay_block_projections (
+             id, film_id, document_id, scene_id, source_document_version_id,
+             position, block_type, text_content, attributes
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            block.blockId,
+            mutation.filmId,
+            input.documentId,
+            block.sceneId,
+            versionId,
+            block.blockIndex,
+            block.type,
+            block.text,
+            block.attributes,
+          ],
+        );
+      }
+
+      return {
+        document: doc,
+        versionId,
       };
     });
   }

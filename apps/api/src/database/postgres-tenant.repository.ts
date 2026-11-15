@@ -71,6 +71,66 @@ export class PostgresTenantRepository implements TenantRepository {
     });
   }
 
+  async getFilm(userId: string, filmId: string): Promise<AccessibleFilm> {
+    return this.transaction(userId, filmId, async (client) => {
+      const result = await client.query<FilmRow>(
+        `SELECT id, organization_id, title, status, permission_revision
+         FROM films
+         WHERE id = $1
+           AND status <> 'deleted'
+           AND app_security.has_active_film_membership(id)`,
+        [filmId],
+      );
+      const row = result.rows[0];
+      if (row === undefined) {
+        throw this.codedError('FILM_NOT_FOUND');
+      }
+      return {
+        id: row.id,
+        organizationId: row.organization_id,
+        title: row.title,
+        status: row.status,
+        permissionRevision: row.permission_revision,
+      };
+    });
+  }
+
+  async archiveFilm(userId: string, filmId: string): Promise<void> {
+    await this.transaction(userId, filmId, async (client) => {
+      const result = await client.query(
+        `UPDATE films
+         SET status = 'archived', updated_at = now()
+         WHERE id = $1
+           AND status = 'active'
+           AND owner_user_id = $2
+           AND app_security.has_active_film_membership(id)
+         RETURNING id`,
+        [filmId, userId],
+      );
+      if (result.rowCount === 0) {
+        throw this.codedError('FILM_NOT_FOUND');
+      }
+    });
+  }
+
+  async restoreFilm(userId: string, filmId: string): Promise<void> {
+    await this.transaction(userId, filmId, async (client) => {
+      const result = await client.query(
+        `UPDATE films
+         SET status = 'active', updated_at = now()
+         WHERE id = $1
+           AND status = 'archived'
+           AND owner_user_id = $2
+           AND app_security.has_active_film_membership(id)
+         RETURNING id`,
+        [filmId, userId],
+      );
+      if (result.rowCount === 0) {
+        throw this.codedError('FILM_NOT_FOUND');
+      }
+    });
+  }
+
   async createInvitation(input: CreateInvitationRecord): Promise<void> {
     try {
       await this.transaction(input.invitedBy, input.filmId, async (client) => {

@@ -30,11 +30,27 @@ const context: MutationContext = {
 
 class FakeTenantRepository implements TenantRepository {
   invitation?: CreateInvitationRecord;
+  archived = false;
 
   async createOrganization(): Promise<void> {}
   async createFilm(): Promise<void> {}
   async listAccessibleFilms() {
     return [];
+  }
+  async getFilm(_userId: string, targetFilmId: string) {
+    return {
+      id: targetFilmId,
+      organizationId: '018f4ce4-7a86-7f2e-96df-bf4e914f21d4',
+      title: 'Test Film',
+      status: this.archived ? 'archived' : 'active',
+      permissionRevision: '1',
+    };
+  }
+  async archiveFilm(): Promise<void> {
+    this.archived = true;
+  }
+  async restoreFilm(): Promise<void> {
+    this.archived = false;
   }
   async createInvitation(input: CreateInvitationRecord): Promise<void> {
     this.invitation = input;
@@ -56,6 +72,11 @@ function setup() {
       grants: [
         {
           permission: 'film.members.manage',
+          effect: 'allow',
+          source: 'role',
+        },
+        {
+          permission: 'film.archive',
           effect: 'allow',
           source: 'role',
         },
@@ -117,5 +138,16 @@ describe('TenantService invitations', () => {
       ),
     ).rejects.toBeInstanceOf(InvalidInvitationExpiryError);
     expect(tenants.invitation).toBeUndefined();
+  });
+
+  it('archives and restores a film with audit logging', async () => {
+    const { service, tenants, auditEvents } = setup();
+    await service.archiveFilm(context, filmId);
+    expect(tenants.archived).toBe(true);
+    expect(auditEvents.some((e) => e.action === 'film.archive')).toBe(true);
+
+    await service.restoreFilm(context, filmId);
+    expect(tenants.archived).toBe(false);
+    expect(auditEvents.some((e) => e.action === 'film.restore')).toBe(true);
   });
 });

@@ -58,6 +58,39 @@ export class TenantController {
     return this.tenants.listAccessibleFilms(this.principal(request).userId);
   }
 
+  @Get('films/:filmId')
+  getFilm(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+  ) {
+    return this.tenants.getFilm(
+      this.principal(request).userId,
+      uuidSchema.parse(filmId),
+    );
+  }
+
+  @Post('films/:filmId/archive')
+  archiveFilm(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+  ) {
+    return this.tenants.archiveFilm(
+      this.context(request),
+      uuidSchema.parse(filmId),
+    );
+  }
+
+  @Post('films/:filmId/restore')
+  restoreFilm(
+    @Req() request: AuthenticatedRequest,
+    @Param('filmId') filmId: string,
+  ) {
+    return this.tenants.restoreFilm(
+      this.context(request),
+      uuidSchema.parse(filmId),
+    );
+  }
+
   @Post('films/:filmId/invitations')
   inviteMember(
     @Req() request: AuthenticatedRequest,

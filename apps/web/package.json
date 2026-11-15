@@ -10,8 +10,17 @@
   },
   "dependencies": {
     "@film-studio/api-client": "workspace:*",
+    "@film-studio/auth-client": "workspace:*",
     "@film-studio/contracts": "workspace:*",
+    "@film-studio/design-tokens": "workspace:*",
+    "@film-studio/editor-bridge": "workspace:*",
+    "@film-studio/localization": "workspace:*",
+    "@film-studio/pagination": "workspace:*",
     "@film-studio/screenplay-model": "workspace:*",
+    "@film-studio/sync-core": "workspace:*",
+    "@tiptap/core": "3.33.1",
+    "@tiptap/pm": "3.33.1",
+    "@tiptap/react": "3.33.1",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1"

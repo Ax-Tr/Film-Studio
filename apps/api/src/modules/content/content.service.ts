@@ -1,4 +1,10 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import {
+  exportToFountain,
+  generateScreenplayPdf,
+  parseFountain,
+  parsePlainTextScript,
+} from '@film-studio/pagination';
 import {
   screenplayDocumentSchema,
   stableJson,
@@ -10,6 +16,8 @@ import type { MutationContext } from '../tenant/tenant.service.js';
 import type {
   ContentRepository,
   DocumentRecord,
+  DocumentVersionDetailRecord,
+  DocumentVersionSummaryRecord,
   MutationIdentity,
   SceneRecord,
 } from './content.repository.js';
@@ -277,6 +285,196 @@ export class ContentService {
       input.id,
     );
     return result;
+  }
+
+  async listDocumentVersions(
+    context: MutationContext,
+    filmId: string,
+    documentId: string,
+  ): Promise<readonly DocumentVersionSummaryRecord[]> {
+    await this.requireRead(context, filmId);
+    return this.repository.listDocumentVersions(
+      context.userId,
+      filmId,
+      documentId,
+    );
+  }
+
+  async getDocumentVersion(
+    context: MutationContext,
+    filmId: string,
+    documentId: string,
+    versionId: string,
+  ): Promise<DocumentVersionDetailRecord> {
+    await this.requireRead(context, filmId);
+    const result = await this.repository.getDocumentVersion(
+      context.userId,
+      filmId,
+      documentId,
+      versionId,
+    );
+    if (!result) throw codedError('MODEL_RESOURCE_NOT_FOUND');
+    return result;
+  }
+
+  async restoreDocumentVersion(
+    context: MutationContext,
+    filmId: string,
+    documentId: string,
+    versionId: string,
+    input: {
+      readonly operationId: string;
+      readonly expectedDocumentVersion: number;
+    },
+  ): Promise<DocumentVersionDetailRecord> {
+    await this.requireEdit(context, filmId);
+    const result = await this.repository.restoreDocumentVersion(
+      this.mutation(
+        context,
+        filmId,
+        input.operationId,
+        'document.version.restore',
+        {
+          documentId,
+          versionId,
+          expectedDocumentVersion: input.expectedDocumentVersion,
+        },
+      ),
+      documentId,
+      versionId,
+      input.expectedDocumentVersion,
+    );
+    await this.record(
+      context,
+      filmId,
+      'document.version.restore',
+      'document_version',
+      result.id,
+    );
+    return result;
+  }
+
+  async importScript(
+    context: MutationContext,
+    filmId: string,
+    input: {
+      readonly operationId: string;
+      readonly title: string;
+      readonly format: 'fountain' | 'text';
+      readonly content: string;
+      readonly language?: string;
+    },
+  ) {
+    await this.requireEdit(context, filmId);
+    const documentId = randomUUID();
+    const parsed =
+      input.format === 'fountain'
+        ? parseFountain(input.content, documentId)
+        : parsePlainTextScript(input.content, documentId);
+
+    const docLang = input.language ?? 'te-IN';
+    const result = await this.repository.importScript(
+      this.mutation(
+        context,
+        filmId,
+        input.operationId,
+        'document.import',
+        {
+          title: input.title,
+          format: input.format,
+          documentId,
+        },
+      ),
+      {
+        documentId,
+        title: input.title,
+        kind: 'screenplay',
+        language: docLang,
+        document: parsed.document,
+      },
+    );
+
+    await this.record(
+      context,
+      filmId,
+      'document.import',
+      'document',
+      documentId,
+    );
+
+    return {
+      documentId,
+      versionId: result.versionId,
+      sceneCount: parsed.sceneCount,
+      characterCount: parsed.characterCount,
+      totalLinesParsed: parsed.totalLinesParsed,
+      errors: parsed.errors,
+    };
+  }
+
+  async exportDocument(
+    context: MutationContext,
+    filmId: string,
+    documentId: string,
+    options: {
+      readonly format: 'pdf' | 'fountain';
+      readonly versionId?: string;
+      readonly watermark?: string;
+    },
+  ): Promise<{
+    readonly contentType: string;
+    readonly filename: string;
+    readonly data: Uint8Array | string;
+  }> {
+    await this.requireRead(context, filmId);
+    const doc = await this.getDocument(context, filmId, documentId);
+    let snapshot: ScreenplayDocument;
+
+    if (options.versionId) {
+      const ver = await this.getDocumentVersion(
+        context,
+        filmId,
+        documentId,
+        options.versionId,
+      );
+      snapshot = ver.snapshot;
+    } else {
+      const versions = await this.listDocumentVersions(
+        context,
+        filmId,
+        documentId,
+      );
+      const latest = versions[0];
+      if (!latest) throw codedError('MODEL_RESOURCE_NOT_FOUND');
+      const ver = await this.getDocumentVersion(
+        context,
+        filmId,
+        documentId,
+        latest.id,
+      );
+      snapshot = ver.snapshot;
+    }
+
+    const safeTitle = doc.title.replace(/[^a-zA-Z0-9_-]+/g, '_');
+
+    if (options.format === 'pdf') {
+      const pdfBytes = generateScreenplayPdf(snapshot, {
+        title: doc.title,
+        ...(options.watermark !== undefined ? { watermark: options.watermark } : {}),
+      });
+      return {
+        contentType: 'application/pdf',
+        filename: `${safeTitle}.pdf`,
+        data: pdfBytes,
+      };
+    } else {
+      const fountainText = exportToFountain(snapshot);
+      return {
+        contentType: 'text/plain; charset=utf-8',
+        filename: `${safeTitle}.fountain`,
+        data: fountainText,
+      };
+    }
   }
 
   private mutation(

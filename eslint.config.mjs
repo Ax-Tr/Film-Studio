@@ -19,6 +19,14 @@ export default [
   },
   eslint.configs.recommended,
   {
+    files: ['apps/web/public/sw.js'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
+  },
+  {
     files: ['**/*.mjs'],
     languageOptions: {
       globals: globals.node,

@@ -62,6 +62,46 @@ export class TenantService {
     return this.repository.listAccessibleFilms(userId);
   }
 
+  getFilm(userId: string, filmId: string): Promise<AccessibleFilm> {
+    return this.repository.getFilm(userId, filmId);
+  }
+
+  async archiveFilm(context: MutationContext, filmId: string): Promise<void> {
+    await this.permissions.requireFilmPermission(
+      context.userId,
+      context.sessionId,
+      filmId,
+      'film.archive',
+    );
+    await this.repository.archiveFilm(context.userId, filmId);
+    await this.audit.record({
+      ...this.auditContext(context),
+      filmId,
+      action: 'film.archive',
+      outcome: 'success',
+      targetType: 'film',
+      targetId: filmId,
+    });
+  }
+
+  async restoreFilm(context: MutationContext, filmId: string): Promise<void> {
+    await this.permissions.requireFilmPermission(
+      context.userId,
+      context.sessionId,
+      filmId,
+      'film.archive',
+    );
+    await this.repository.restoreFilm(context.userId, filmId);
+    await this.audit.record({
+      ...this.auditContext(context),
+      filmId,
+      action: 'film.restore',
+      outcome: 'success',
+      targetType: 'film',
+      targetId: filmId,
+    });
+  }
+
   async inviteMember(
     context: MutationContext,
     filmId: string,

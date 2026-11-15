@@ -65,4 +65,79 @@ describe('S5 API client', () => {
     ).rejects.toThrow();
     expect(called).toBe(false);
   });
+
+  it('validates pushSync, pullSync, and ackSync request/response contracts', async () => {
+    const client = createApiClient({
+      baseUrl: new URL('https://api.example.test'),
+      fetchImplementation: async (input) => {
+        const url = String(input);
+        if (url.includes('/sync/push')) {
+          return new Response(
+            JSON.stringify({
+              filmId,
+              results: [
+                {
+                  opId: operationId,
+                  status: 'applied',
+                  serverRevision: 1,
+                  entityVersion: 2,
+                },
+              ],
+              latestServerRevision: 1,
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          );
+        }
+        if (url.includes('/sync/pull')) {
+          return new Response(
+            JSON.stringify({
+              kind: 'operations',
+              operations: [],
+              nextCursor: 'opaque-cursor',
+              hasMore: false,
+              latestServerRevision: 1,
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          );
+        }
+        if (url.includes('/sync/ack')) {
+          return new Response(null, { status: 204 });
+        }
+        return new Response(null, { status: 404 });
+      },
+    });
+
+    const pushRes = await client.pushSync({
+      filmId,
+      operations: [
+        {
+          schemaVersion: 1,
+          opId: operationId,
+          filmId,
+          actorUserId: '018f4ce4-7a86-7f2e-96df-bf4e914f21d4',
+          deviceId: '018f4ce4-f001-7000-8000-000000000001',
+          clientSequence: 1,
+          entityType: 'document',
+          entityId: documentId,
+          kind: 'document.metadata.patch',
+          baseVersion: 1,
+          payload: { title: 'Updated' },
+          createdAtClient: new Date().toISOString(),
+        },
+      ],
+    });
+    expect(pushRes.results).toHaveLength(1);
+    expect(pushRes.results[0]?.status).toBe('applied');
+
+    const pullRes = await client.pullSync(filmId);
+    expect(pullRes.kind).toBe('operations');
+
+    await expect(
+      client.ackSync({
+        filmId,
+        deviceId: '018f4ce4-f001-7000-8000-000000000001',
+        serverRevision: 1,
+      }),
+    ).resolves.toBeUndefined();
+  });
 });

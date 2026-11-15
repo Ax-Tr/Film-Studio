@@ -1,3 +1,7 @@
+export * from './paginator.js';
+export * from './importer.js';
+export * from './exporter.js';
+
 export interface PaginationRendererManifest {
   readonly rendererId: string;
   readonly rendererVersion: string;
@@ -7,4 +11,4 @@ export interface PaginationRendererManifest {
   readonly pageHeightPoints: number;
 }
 
-export const canonicalPaginationStatus = 'unselected' as const;
+export const canonicalPaginationStatus = 'ready' as const;

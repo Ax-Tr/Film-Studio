@@ -27,6 +27,22 @@ export interface MutationIdentity {
   readonly filmId: string;
 }
 
+export interface DocumentVersionSummaryRecord {
+  readonly id: string;
+  readonly filmId: string;
+  readonly documentId: string;
+  readonly documentVersion: number;
+  readonly schemaVersion: number;
+  readonly snapshotSha256: string;
+  readonly createdBy: string;
+  readonly createdAt: string;
+}
+
+export interface DocumentVersionDetailRecord
+  extends DocumentVersionSummaryRecord {
+  readonly snapshot: ScreenplayDocument;
+}
+
 export interface ContentRepository {
   createDocument(
     mutation: MutationIdentity,
@@ -111,5 +127,35 @@ export interface ContentRepository {
     readonly documentId: string;
     readonly documentVersion: number;
     readonly snapshotSha256: string;
+  }>;
+  listDocumentVersions(
+    userId: string,
+    filmId: string,
+    documentId: string,
+  ): Promise<readonly DocumentVersionSummaryRecord[]>;
+  getDocumentVersion(
+    userId: string,
+    filmId: string,
+    documentId: string,
+    versionId: string,
+  ): Promise<DocumentVersionDetailRecord | undefined>;
+  restoreDocumentVersion(
+    mutation: MutationIdentity,
+    documentId: string,
+    versionId: string,
+    expectedDocumentVersion: number,
+  ): Promise<DocumentVersionDetailRecord>;
+  importScript(
+    mutation: MutationIdentity,
+    input: {
+      readonly documentId: string;
+      readonly title: string;
+      readonly kind: string;
+      readonly language: string;
+      readonly document: ScreenplayDocument;
+    },
+  ): Promise<{
+    readonly document: DocumentRecord;
+    readonly versionId: string;
   }>;
 }

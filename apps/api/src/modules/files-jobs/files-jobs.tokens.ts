@@ -1,0 +1,3 @@
+export const FILES_JOBS_SERVICE = Symbol('FILES_JOBS_SERVICE');
+export const FILES_JOBS_REPOSITORY = Symbol('FILES_JOBS_REPOSITORY');
+

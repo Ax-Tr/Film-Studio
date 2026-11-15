@@ -14,7 +14,10 @@
   "dependencies": {
     "@film-studio/contracts": "workspace:*",
     "@film-studio/domain": "workspace:*",
+    "@film-studio/jobs": "workspace:*",
+    "@film-studio/pagination": "workspace:*",
     "@film-studio/screenplay-model": "workspace:*",
+    "@film-studio/sync-core": "workspace:*",
     "@nestjs/common": "12.5.0",
     "@nestjs/core": "12.5.0",
     "@nestjs/platform-express": "12.5.0",
