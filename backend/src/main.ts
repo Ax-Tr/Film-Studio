@@ -12,7 +12,7 @@ async function bootstrap(): Promise<void> {
     bodyParser: true,
   });
 
-  application.setGlobalPrefix('v1', { exclude: ['health'] });
+  application.setGlobalPrefix('v1', { exclude: ['health', 'ready'] });
   application.use(helmet());
   application.use(cookieParser());
   application.useGlobalFilters(new ApiExceptionFilter());

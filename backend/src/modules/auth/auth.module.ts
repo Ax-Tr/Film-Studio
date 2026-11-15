@@ -1,15 +1,19 @@
 import { Module, type DynamicModule } from '@nestjs/common';
+import { Pool } from 'pg';
 import type { AppEnvironment } from '@film-studio/contracts';
 import { DatabasePoolService } from '../../database/database-pool.service.js';
 import { PostgresAuthTransactionRepository } from '../../database/postgres-auth-transaction.repository.js';
 import { PostgresAuditRepository } from '../../database/postgres-audit.repository.js';
 import { PostgresAuthorizationRepository } from '../../database/postgres-authorization.repository.js';
+import { PostgresCharacterRepository } from '../../database/postgres-character.repository.js';
 import { PostgresContentRepository } from '../../database/postgres-content.repository.js';
 import { PostgresIdentityRepository } from '../../database/postgres-identity.repository.js';
 import { PostgresSessionRepository } from '../../database/postgres-session.repository.js';
 import { PostgresTenantRepository } from '../../database/postgres-tenant.repository.js';
 import { AuditService } from '../audit/audit.service.js';
 import { PermissionService } from '../authorization/permission.service.js';
+import { CharacterController } from '../content/character.controller.js';
+import { CharacterService } from '../content/character.service.js';
 import { ContentController } from '../content/content.controller.js';
 import { ContentService } from '../content/content.service.js';
 import { CONTENT_SERVICE } from '../content/content.tokens.js';
@@ -34,6 +38,7 @@ const TENANT_REPOSITORY = Symbol('TENANT_REPOSITORY');
 const AUTHORIZATION_REPOSITORY = Symbol('AUTHORIZATION_REPOSITORY');
 const AUDIT_REPOSITORY = Symbol('AUDIT_REPOSITORY');
 const CONTENT_REPOSITORY = Symbol('CONTENT_REPOSITORY');
+const CHARACTER_REPOSITORY = Symbol('CHARACTER_REPOSITORY');
 
 @Module({})
 export class AuthModule {
@@ -45,12 +50,18 @@ export class AuthModule {
         MeController,
         TenantController,
         ContentController,
+        CharacterController,
       ],
       providers: [
         { provide: AUTH_ENVIRONMENT, useValue: environment },
         {
           provide: DatabasePoolService,
           useFactory: () => new DatabasePoolService(environment.DATABASE_URL),
+        },
+        {
+          provide: Pool,
+          inject: [DatabasePoolService],
+          useFactory: (database: DatabasePoolService) => database.pool,
         },
         {
           provide: TRANSACTION_REPOSITORY,
@@ -95,6 +106,12 @@ export class AuthModule {
             new PostgresContentRepository(database.pool),
         },
         {
+          provide: CHARACTER_REPOSITORY,
+          inject: [DatabasePoolService],
+          useFactory: (database: DatabasePoolService) =>
+            new PostgresCharacterRepository(database.pool),
+        },
+        {
           provide: PermissionService,
           inject: [AUTHORIZATION_REPOSITORY],
           useFactory: (
@@ -107,6 +124,15 @@ export class AuthModule {
           useFactory: (
             repository: ConstructorParameters<typeof AuditService>[0],
           ) => new AuditService(repository),
+        },
+        {
+          provide: CharacterService,
+          inject: [CHARACTER_REPOSITORY, PermissionService, AuditService],
+          useFactory: (
+            repository: ConstructorParameters<typeof CharacterService>[0],
+            permissions: PermissionService,
+            audit: AuditService,
+          ) => new CharacterService(repository, permissions, audit),
         },
         {
           provide: TENANT_SERVICE,

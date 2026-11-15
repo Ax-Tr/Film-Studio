@@ -15,7 +15,7 @@ import { z } from 'zod';
 import type { Request, Response } from 'express';
 import type { AppEnvironment } from '@film-studio/contracts';
 import { refreshSessionRequestSchema } from '@film-studio/contracts';
-import type { AuditService } from '../audit/audit.service.js';
+import { AuditService } from '../audit/audit.service.js';
 import type { AuthFlowService } from './auth-flow.service.js';
 import type { SessionService } from './session.service.js';
 import { AUTH_ENVIRONMENT, AUTH_FLOW, SESSION_SERVICE } from './auth.tokens.js';
@@ -36,7 +36,7 @@ export class AuthController {
     @Inject(AUTH_FLOW) private readonly authFlow: AuthFlowService,
     @Inject(SESSION_SERVICE) private readonly sessions: SessionService,
     @Inject(AUTH_ENVIRONMENT) private readonly environment: AppEnvironment,
-    private readonly audit: AuditService,
+    @Inject(AuditService) private readonly audit: AuditService,
   ) {}
 
   @Get('web/start')

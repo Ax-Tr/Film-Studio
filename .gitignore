@@ -23,6 +23,8 @@ artifacts/*
 *.db-shm
 *.db-wal
 *.log
+backend/data/
+data/
 .DS_Store
 Thumbs.db
 .idea/

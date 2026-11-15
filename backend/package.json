@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.5.16",
     "@film-studio/contracts": "workspace:*",
     "@film-studio/domain": "workspace:*",
     "@film-studio/jobs": "workspace:*",

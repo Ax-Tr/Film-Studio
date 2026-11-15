@@ -38,7 +38,7 @@ export class CharacterService {
       'character.create',
       'character',
       id,
-      { displayName: result.displayName },
+      { version: result.version },
     );
     return result;
   }

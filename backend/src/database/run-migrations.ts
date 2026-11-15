@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Pool } from 'pg';
+import { PGlite } from '@electric-sql/pglite';
+import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 
 interface AppliedMigration {
   name: string;
@@ -16,12 +19,34 @@ async function run(): Promise<void> {
   }
   const migrationDirectory = resolve(
     dirname(fileURLToPath(import.meta.url)),
-    '../../../../infra/database/migrations',
+    '../../../infra/database/migrations',
   );
   const names = (await readdir(migrationDirectory))
     .filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/u.test(name))
     .sort();
-  const pool = new Pool({ connectionString, max: 1 });
+
+  let pgliteDb: PGlite | undefined;
+  let pool: Pool;
+
+  if (
+    connectionString.startsWith('postgresql://embedded') ||
+    connectionString.startsWith('postgresql://pglite')
+  ) {
+    const defaultDir = existsSync(resolve(process.cwd(), 'backend'))
+      ? resolve(process.cwd(), 'backend/data/pglite')
+      : resolve(process.cwd(), 'data/pglite');
+    const dataDir = process.env.PGLITE_DATA_DIR
+      ? resolve(process.env.PGLITE_DATA_DIR)
+      : defaultDir;
+    if (!existsSync(dataDir)) {
+      mkdirSync(dataDir, { recursive: true });
+    }
+    pgliteDb = new PGlite(dataDir);
+    pool = new Pool(createPgConfig(pgliteDb));
+  } else {
+    pool = new Pool({ connectionString, max: 1 });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('SELECT pg_advisory_lock($1)', [7_142_334_901]);
@@ -67,6 +92,9 @@ async function run(): Promise<void> {
     await client.query('SELECT pg_advisory_unlock($1)', [7_142_334_901]);
     client.release();
     await pool.end();
+    if (pgliteDb) {
+      await pgliteDb.close();
+    }
   }
 }
 

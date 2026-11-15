@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
@@ -22,14 +23,14 @@ import { z } from 'zod';
 import type { AuthenticatedRequest } from '../auth/authenticated-request.js';
 import { SessionAuthGuard } from '../auth/session-auth.guard.js';
 import type { MutationContext } from '../tenant/tenant.service.js';
-import type { CharacterService } from './character.service.js';
+import { CharacterService } from './character.service.js';
 
 const uuidSchema = z.string().uuid();
 
 @Controller('films/:filmId')
 @UseGuards(SessionAuthGuard)
 export class CharacterController {
-  constructor(private readonly characters: CharacterService) {}
+  constructor(@Inject(CharacterService) private readonly characters: CharacterService) {}
 
   @Post('characters')
   createCharacter(

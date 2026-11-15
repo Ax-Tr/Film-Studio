@@ -152,6 +152,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
     console.error('Unhandled API error', {
       requestId,
       errorName: coded?.name ?? 'UnknownError',
+      message: coded?.message,
+      stack: coded?.stack,
     });
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       code: 'INTERNAL_ERROR',
