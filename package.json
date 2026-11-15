@@ -52,7 +52,7 @@
     "infra:config": "docker compose --env-file .env -f infra/docker/compose.yaml config --quiet",
     "infra:down": "docker compose --env-file .env -f infra/docker/compose.yaml down",
     "infra:up": "docker compose --env-file .env -f infra/docker/compose.yaml up -d --wait",
-    "lint": "eslint apps packages workers scripts --max-warnings=0",
+    "lint": "eslint frontend backend android ios packages workers scripts --max-warnings=0",
     "secrets:check": "node scripts/scan-secrets.mjs",
     "test": "pnpm -r --workspace-concurrency=1 --if-present run test",
     "test:contract": "pnpm --filter @film-studio/contracts test",

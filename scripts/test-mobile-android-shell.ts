@@ -15,13 +15,13 @@
  */
 
 import { strict as assert } from 'node:assert';
-import { MobileCredentialStorage } from '../apps/mobile/src/storage/credential-storage';
-import { AndroidAuthHandler } from '../apps/mobile/src/auth/android-auth-handler';
+import { MobileCredentialStorage } from '../android/src/storage/credential-storage';
+import { AndroidAuthHandler } from '../android/src/auth/android-auth-handler';
 import {
   createDatabaseAdapter,
   MOBILE_SCHEMA_V1,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
+} from '../android/src/database/mobile-database';
+import { MobileLocalRepository } from '../android/src/database/mobile-repository';
 
 async function runMobileFoundationTests() {
   const startedAt = Date.now();

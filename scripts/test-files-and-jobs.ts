@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresFilesJobsRepository } from '../apps/api/src/database/postgres-files-jobs.repository.js';
+import { PostgresFilesJobsRepository } from '../backend/src/database/postgres-files-jobs.repository.js';
 import { executeJobWithRecovery, redactTelemetry, type JobExecution } from '@film-studio/jobs';
 
 const userOne = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';

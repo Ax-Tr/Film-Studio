@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresInteropRepository } from '../apps/api/src/database/postgres-interop.repository.js';
+import { PostgresInteropRepository } from '../backend/src/database/postgres-interop.repository.js';
 
 // Users
 const producerUser = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';

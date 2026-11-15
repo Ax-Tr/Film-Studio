@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { IosAuthHandler } from '../apps/mobile/src/auth/ios-auth-handler';
-import { IosKeychainStorage } from '../apps/mobile/src/storage/ios-keychain-storage';
-import { IosLifecycleManager } from '../apps/mobile/src/lifecycle/ios-lifecycle-manager';
-import { IosDiagnosticsService } from '../apps/mobile/src/diagnostics/ios-diagnostics-service';
+import { IosAuthHandler } from '../ios/src/auth/ios-auth-handler';
+import { IosKeychainStorage } from '../ios/src/storage/ios-keychain-storage';
+import { IosLifecycleManager } from '../ios/src/lifecycle/ios-lifecycle-manager';
+import { IosDiagnosticsService } from '../ios/src/diagnostics/ios-diagnostics-service';
 
 async function runIosPlatformIntegrationTest(): Promise<void> {
   // 1. Verify app.json iOS configuration
-  const appJsonPath = resolve(process.cwd(), 'apps/mobile/app.json');
+  const appJsonPath = resolve(process.cwd(), 'ios/app.json');
   const appJsonRaw = readFileSync(appJsonPath, 'utf-8');
   const appJson = JSON.parse(appJsonRaw);
 

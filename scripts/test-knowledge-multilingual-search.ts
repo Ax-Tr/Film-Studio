@@ -5,7 +5,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
 import { getTranslations, supportedLocales } from '@film-studio/localization';
-import { PostgresKnowledgeRepository } from '../apps/api/src/database/postgres-knowledge.repository.js';
+import { PostgresKnowledgeRepository } from '../backend/src/database/postgres-knowledge.repository.js';
 
 // Users
 const authorUser = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4'; // Screenplay Author / Historian

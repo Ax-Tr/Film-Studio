@@ -1,11 +1,11 @@
 import { strict as assert } from 'node:assert';
 import {
   createDatabaseAdapter,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
-import { IosScreenplayEditorEngine } from '../apps/mobile/src/editor/ios-screenplay-editor-engine';
-import { MobileDraftPersistenceManager } from '../apps/mobile/src/editor/mobile-draft-persistence';
-import { IosLifecycleManager } from '../apps/mobile/src/lifecycle/ios-lifecycle-manager';
+} from '../ios/src/database/mobile-database';
+import { MobileLocalRepository } from '../ios/src/database/mobile-repository';
+import { IosScreenplayEditorEngine } from '../ios/src/editor/ios-screenplay-editor-engine';
+import { MobileDraftPersistenceManager } from '../ios/src/editor/mobile-draft-persistence';
+import { IosLifecycleManager } from '../ios/src/lifecycle/ios-lifecycle-manager';
 
 async function runIosEditorDurabilityTests() {
   const startedAt = Date.now();

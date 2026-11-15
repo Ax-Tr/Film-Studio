@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresEnterpriseQuotaRepository } from '../apps/api/src/database/postgres-enterprise-quota.repository.js';
+import { PostgresEnterpriseQuotaRepository } from '../backend/src/database/postgres-enterprise-quota.repository.js';
 
 // Users
 const ownerUser = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';   // Org Owner / Producer

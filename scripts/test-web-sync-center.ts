@@ -4,10 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresSyncRepository } from '../apps/api/src/database/postgres-sync.repository.js';
-import { SyncService } from '../apps/api/src/modules/sync/sync.service.js';
-import { WebSyncManager } from '../apps/web/app/lib/sync-manager.js';
-import type { MutationContext } from '../apps/api/src/database/postgres-tenant.repository.js';
+import { PostgresSyncRepository } from '../backend/src/database/postgres-sync.repository.js';
+import { SyncService } from '../backend/src/modules/sync/sync.service.js';
+import { WebSyncManager } from '../frontend/app/lib/sync-manager.js';
+import type { MutationContext } from '../backend/src/database/postgres-tenant.repository.js';
 
 const userOne = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';
 const organizationOne = '018f4ce4-a249-79aa-94a6-09195b7d91cf';
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
 
     // 1. Verify PWA Assets exist
     const manifestRaw = await readFile(
-      new URL('../apps/web/public/manifest.json', import.meta.url),
+      new URL('../frontend/public/manifest.json', import.meta.url),
       'utf8',
     );
     const manifest = JSON.parse(manifestRaw) as { name: string; display: string };
@@ -97,7 +97,7 @@ async function main(): Promise<void> {
     assert.equal(manifest.display, 'standalone');
 
     const swRaw = await readFile(
-      new URL('../apps/web/public/sw.js', import.meta.url),
+      new URL('../frontend/public/sw.js', import.meta.url),
       'utf8',
     );
     assert.ok(swRaw.includes('CACHE_NAME'));

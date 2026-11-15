@@ -4,17 +4,17 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresAuditRepository } from '../apps/api/src/database/postgres-audit.repository.js';
-import { PostgresAuthorizationRepository } from '../apps/api/src/database/postgres-authorization.repository.js';
-import { PostgresContentRepository } from '../apps/api/src/database/postgres-content.repository.js';
-import { PostgresTenantRepository } from '../apps/api/src/database/postgres-tenant.repository.js';
-import { AuditService } from '../apps/api/src/modules/audit/audit.service.js';
-import { PermissionService } from '../apps/api/src/modules/authorization/permission.service.js';
-import { ContentService } from '../apps/api/src/modules/content/content.service.js';
+import { PostgresAuditRepository } from '../backend/src/database/postgres-audit.repository.js';
+import { PostgresAuthorizationRepository } from '../backend/src/database/postgres-authorization.repository.js';
+import { PostgresContentRepository } from '../backend/src/database/postgres-content.repository.js';
+import { PostgresTenantRepository } from '../backend/src/database/postgres-tenant.repository.js';
+import { AuditService } from '../backend/src/modules/audit/audit.service.js';
+import { PermissionService } from '../backend/src/modules/authorization/permission.service.js';
+import { ContentService } from '../backend/src/modules/content/content.service.js';
 import {
   TenantService,
   type MutationContext,
-} from '../apps/api/src/modules/tenant/tenant.service.js';
+} from '../backend/src/modules/tenant/tenant.service.js';
 import {
   getTranslations,
   supportedLocales,

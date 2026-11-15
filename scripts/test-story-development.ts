@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresStoryRepository } from '../apps/api/src/database/postgres-story.repository.js';
+import { PostgresStoryRepository } from '../backend/src/database/postgres-story.repository.js';
 
 const userOne = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';
 const userTwo = '018f4ce4-82c4-7808-ae50-28293c570bd5';

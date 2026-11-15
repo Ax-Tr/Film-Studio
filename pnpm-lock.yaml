@@ -60,26 +60,84 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
 
-  apps/api:
+  android:
+    dependencies:
+      '@film-studio/api-client':
+        specifier: workspace:*
+        version: link:../packages/api-client
+      '@film-studio/contracts':
+        specifier: workspace:*
+        version: link:../packages/contracts
+      '@film-studio/editor-bridge':
+        specifier: workspace:*
+        version: link:../packages/editor-bridge
+      '@film-studio/localization':
+        specifier: workspace:*
+        version: link:../packages/localization
+      '@film-studio/pagination':
+        specifier: workspace:*
+        version: link:../packages/pagination
+      '@film-studio/screenplay-model':
+        specifier: workspace:*
+        version: link:../packages/screenplay-model
+      '@film-studio/sync-core':
+        specifier: workspace:*
+        version: link:../packages/sync-core
+      expo:
+        specifier: 58.0.25
+        version: 58.0.25(@babel/core@7.29.13)(@expo/dom-webview@58.0.2)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native@0.88.0(@babel/core@7.29.13)(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
+      expo-crypto:
+        specifier: ^58.0.8
+        version: 58.0.8(expo@58.0.25)
+      expo-secure-store:
+        specifier: ^58.0.3
+        version: 58.0.3(expo@58.0.25)
+      expo-sqlite:
+        specifier: ^58.0.17
+        version: 58.0.17(expo@58.0.25)(react-native@0.88.0(@babel/core@7.29.13)(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+      expo-status-bar:
+        specifier: 58.0.5
+        version: 58.0.5(expo@58.0.25)(react-native@0.88.0(@babel/core@7.29.13)(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: 19.3.0
+        version: 19.3.0(react@19.3.0)
+      react-native:
+        specifier: 0.88.0
+        version: 0.88.0(@babel/core@7.29.13)(@types/react@19.3.0)(react@19.3.0)
+      react-native-web:
+        specifier: 0.21.0
+        version: 0.21.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  backend:
     dependencies:
       '@film-studio/contracts':
         specifier: workspace:*
-        version: link:../../packages/contracts
+        version: link:../packages/contracts
       '@film-studio/domain':
         specifier: workspace:*
-        version: link:../../packages/domain
+        version: link:../packages/domain
       '@film-studio/jobs':
         specifier: workspace:*
-        version: link:../../workers/jobs
+        version: link:../workers/jobs
       '@film-studio/pagination':
         specifier: workspace:*
-        version: link:../../packages/pagination
+        version: link:../packages/pagination
       '@film-studio/screenplay-model':
         specifier: workspace:*
-        version: link:../../packages/screenplay-model
+        version: link:../packages/screenplay-model
       '@film-studio/sync-core':
         specifier: workspace:*
-        version: link:../../packages/sync-core
+        version: link:../packages/sync-core
       '@nestjs/common':
         specifier: 12.5.0
         version: 12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -136,29 +194,90 @@ importers:
         specifier: 'catalog:'
         version: 5.1.0(@types/node@24.10.1)(vite@8.3.8(@types/node@24.10.1)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
-  apps/mobile:
+  frontend:
     dependencies:
       '@film-studio/api-client':
         specifier: workspace:*
-        version: link:../../packages/api-client
+        version: link:../packages/api-client
+      '@film-studio/auth-client':
+        specifier: workspace:*
+        version: link:../packages/auth-client
       '@film-studio/contracts':
         specifier: workspace:*
-        version: link:../../packages/contracts
+        version: link:../packages/contracts
+      '@film-studio/design-tokens':
+        specifier: workspace:*
+        version: link:../packages/design-tokens
       '@film-studio/editor-bridge':
         specifier: workspace:*
-        version: link:../../packages/editor-bridge
+        version: link:../packages/editor-bridge
       '@film-studio/localization':
         specifier: workspace:*
-        version: link:../../packages/localization
+        version: link:../packages/localization
       '@film-studio/pagination':
         specifier: workspace:*
-        version: link:../../packages/pagination
+        version: link:../packages/pagination
       '@film-studio/screenplay-model':
         specifier: workspace:*
-        version: link:../../packages/screenplay-model
+        version: link:../packages/screenplay-model
       '@film-studio/sync-core':
         specifier: workspace:*
-        version: link:../../packages/sync-core
+        version: link:../packages/sync-core
+      '@tiptap/core':
+        specifier: 3.33.1
+        version: 3.33.1(@tiptap/pm@3.33.1)
+      '@tiptap/pm':
+        specifier: 3.33.1
+        version: 3.33.1
+      '@tiptap/react':
+        specifier: 3.33.1
+        version: 3.33.1(@floating-ui/dom@1.8.0)(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1)(@types/react-dom@19.2.3(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      next:
+        specifier: 16.4.6
+        version: 16.4.6(@types/node@24.10.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      react:
+        specifier: 19.3.1
+        version: 19.3.1
+      react-dom:
+        specifier: 19.3.1
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.3.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  ios:
+    dependencies:
+      '@film-studio/api-client':
+        specifier: workspace:*
+        version: link:../packages/api-client
+      '@film-studio/contracts':
+        specifier: workspace:*
+        version: link:../packages/contracts
+      '@film-studio/editor-bridge':
+        specifier: workspace:*
+        version: link:../packages/editor-bridge
+      '@film-studio/localization':
+        specifier: workspace:*
+        version: link:../packages/localization
+      '@film-studio/pagination':
+        specifier: workspace:*
+        version: link:../packages/pagination
+      '@film-studio/screenplay-model':
+        specifier: workspace:*
+        version: link:../packages/screenplay-model
+      '@film-studio/sync-core':
+        specifier: workspace:*
+        version: link:../packages/sync-core
       expo:
         specifier: 58.0.25
         version: 58.0.25(@babel/core@7.29.13)(@expo/dom-webview@58.0.2)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native@0.88.0(@babel/core@7.29.13)(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
@@ -190,67 +309,6 @@ importers:
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-
-  apps/web:
-    dependencies:
-      '@film-studio/api-client':
-        specifier: workspace:*
-        version: link:../../packages/api-client
-      '@film-studio/auth-client':
-        specifier: workspace:*
-        version: link:../../packages/auth-client
-      '@film-studio/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@film-studio/design-tokens':
-        specifier: workspace:*
-        version: link:../../packages/design-tokens
-      '@film-studio/editor-bridge':
-        specifier: workspace:*
-        version: link:../../packages/editor-bridge
-      '@film-studio/localization':
-        specifier: workspace:*
-        version: link:../../packages/localization
-      '@film-studio/pagination':
-        specifier: workspace:*
-        version: link:../../packages/pagination
-      '@film-studio/screenplay-model':
-        specifier: workspace:*
-        version: link:../../packages/screenplay-model
-      '@film-studio/sync-core':
-        specifier: workspace:*
-        version: link:../../packages/sync-core
-      '@tiptap/core':
-        specifier: 3.33.1
-        version: 3.33.1(@tiptap/pm@3.33.1)
-      '@tiptap/pm':
-        specifier: 3.33.1
-        version: 3.33.1
-      '@tiptap/react':
-        specifier: 3.33.1
-        version: 3.33.1(@floating-ui/dom@1.8.0)(@tiptap/core@3.33.1(@tiptap/pm@3.33.1))(@tiptap/pm@3.33.1)(@types/react-dom@19.2.3(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      next:
-        specifier: 16.4.6
-        version: 16.4.6(@types/node@24.10.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
-      react:
-        specifier: 19.3.1
-        version: 19.3.1
-      react-dom:
-        specifier: 19.3.1
-        version: 19.3.1(react@19.3.1)
-    devDependencies:
-      '@types/node':
-        specifier: 24.10.1
-        version: 24.10.1
-      '@types/react':
-        specifier: 19.3.0
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 19.2.3
-        version: 19.2.3(@types/react@19.3.0)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

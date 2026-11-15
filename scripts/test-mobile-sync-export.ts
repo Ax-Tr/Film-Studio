@@ -21,13 +21,13 @@
 import { strict as assert } from 'node:assert';
 import {
   createDatabaseAdapter,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
+} from '../android/src/database/mobile-database';
+import { MobileLocalRepository } from '../android/src/database/mobile-repository';
 import {
   MobileSyncCoordinator,
   type RemoteSyncClient,
-} from '../apps/mobile/src/sync/mobile-sync-coordinator';
-import { MobileExportService } from '../apps/mobile/src/export/mobile-export-service';
+} from '../android/src/sync/mobile-sync-coordinator';
+import { MobileExportService } from '../android/src/export/mobile-export-service';
 import type { SyncPushResult } from '@film-studio/sync-core';
 
 async function runMobileSyncExportTests() {

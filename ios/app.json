@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "StoryForge Studio",
+    "slug": "storyforge-studio",
+    "version": "1.0.0-rc.1",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "scheme": "filmstudio",
+    "android": {
+      "package": "com.storyforgestudio.mobile",
+      "versionCode": 1,
+      "minSdkVersion": 35,
+      "targetSdkVersion": 35,
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0e14"
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.storyforgestudio.mobile",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ],
+        "NSFaceIDUsageDescription": "StoryForge Studio uses Face ID to securely authenticate and protect confidential screenplay and production assets.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": [
+        "applinks:storyforge.studio"
+      ]
+    }
+  }
+}

@@ -28,24 +28,24 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   createDatabaseAdapter,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
-import { MobileCredentialStorage } from '../apps/mobile/src/storage/credential-storage';
-import { AndroidAuthHandler } from '../apps/mobile/src/auth/android-auth-handler';
-import { MobileScreenplayEditorEngine } from '../apps/mobile/src/editor/mobile-screenplay-editor-engine';
-import { MobileDraftPersistenceManager } from '../apps/mobile/src/editor/mobile-draft-persistence';
+} from '../android/src/database/mobile-database';
+import { MobileLocalRepository } from '../android/src/database/mobile-repository';
+import { MobileCredentialStorage } from '../android/src/storage/credential-storage';
+import { AndroidAuthHandler } from '../android/src/auth/android-auth-handler';
+import { MobileScreenplayEditorEngine } from '../android/src/editor/mobile-screenplay-editor-engine';
+import { MobileDraftPersistenceManager } from '../android/src/editor/mobile-draft-persistence';
 import {
   MobileSyncCoordinator,
   type RemoteSyncClient,
-} from '../apps/mobile/src/sync/mobile-sync-coordinator';
-import { MobileExportService } from '../apps/mobile/src/export/mobile-export-service';
+} from '../android/src/sync/mobile-sync-coordinator';
+import { MobileExportService } from '../android/src/export/mobile-export-service';
 import type { SyncPushResult } from '@film-studio/sync-core';
 
 async function runAndroidReleaseCandidateTests() {
   const startedAt = Date.now();
 
   // Test 1: App Manifest & Configuration
-  const appJsonPath = join(process.cwd(), 'apps', 'mobile', 'app.json');
+  const appJsonPath = join(process.cwd(), 'android', 'app.json');
   const appJson = JSON.parse(readFileSync(appJsonPath, 'utf-8')) as {
     expo: {
       name: string;

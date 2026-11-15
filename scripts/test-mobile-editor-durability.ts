@@ -21,10 +21,10 @@
 import { strict as assert } from 'node:assert';
 import {
   createDatabaseAdapter,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
-import { MobileScreenplayEditorEngine } from '../apps/mobile/src/editor/mobile-screenplay-editor-engine';
-import { MobileDraftPersistenceManager } from '../apps/mobile/src/editor/mobile-draft-persistence';
+} from '../android/src/database/mobile-database';
+import { MobileLocalRepository } from '../android/src/database/mobile-repository';
+import { MobileScreenplayEditorEngine } from '../android/src/editor/mobile-screenplay-editor-engine';
+import { MobileDraftPersistenceManager } from '../android/src/editor/mobile-draft-persistence';
 
 async function runMobileEditorDurabilityTests() {
   const startedAt = Date.now();

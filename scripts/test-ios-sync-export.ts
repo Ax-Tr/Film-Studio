@@ -1,13 +1,13 @@
 import { strict as assert } from 'node:assert';
 import {
   createDatabaseAdapter,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
+} from '../ios/src/database/mobile-database';
+import { MobileLocalRepository } from '../ios/src/database/mobile-repository';
 import {
   MobileSyncCoordinator,
   type RemoteSyncClient,
-} from '../apps/mobile/src/sync/mobile-sync-coordinator';
-import { IosExportShareService } from '../apps/mobile/src/export/ios-export-share-service';
+} from '../ios/src/sync/mobile-sync-coordinator';
+import { IosExportShareService } from '../ios/src/export/ios-export-share-service';
 import type { SyncPushResult } from '@film-studio/sync-core';
 
 async function runIosSyncAndExportTests() {

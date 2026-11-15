@@ -3,26 +3,26 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   createDatabaseAdapter,
-} from '../apps/mobile/src/database/mobile-database';
-import { MobileLocalRepository } from '../apps/mobile/src/database/mobile-repository';
-import { IosKeychainStorage } from '../apps/mobile/src/storage/ios-keychain-storage';
-import { IosAuthHandler } from '../apps/mobile/src/auth/ios-auth-handler';
-import { IosScreenplayEditorEngine } from '../apps/mobile/src/editor/ios-screenplay-editor-engine';
-import { MobileDraftPersistenceManager } from '../apps/mobile/src/editor/mobile-draft-persistence';
+} from '../ios/src/database/mobile-database';
+import { MobileLocalRepository } from '../ios/src/database/mobile-repository';
+import { IosKeychainStorage } from '../ios/src/storage/ios-keychain-storage';
+import { IosAuthHandler } from '../ios/src/auth/ios-auth-handler';
+import { IosScreenplayEditorEngine } from '../ios/src/editor/ios-screenplay-editor-engine';
+import { MobileDraftPersistenceManager } from '../ios/src/editor/mobile-draft-persistence';
 import {
   MobileSyncCoordinator,
   type RemoteSyncClient,
-} from '../apps/mobile/src/sync/mobile-sync-coordinator';
-import { IosExportShareService } from '../apps/mobile/src/export/ios-export-share-service';
-import { IosDiagnosticsService } from '../apps/mobile/src/diagnostics/ios-diagnostics-service';
-import { IosLifecycleManager } from '../apps/mobile/src/lifecycle/ios-lifecycle-manager';
+} from '../ios/src/sync/mobile-sync-coordinator';
+import { IosExportShareService } from '../ios/src/export/ios-export-share-service';
+import { IosDiagnosticsService } from '../ios/src/diagnostics/ios-diagnostics-service';
+import { IosLifecycleManager } from '../ios/src/lifecycle/ios-lifecycle-manager';
 import type { SyncPushResult } from '@film-studio/sync-core';
 
 async function runIosReleaseCandidateTests() {
   const startedAt = Date.now();
 
   // 1. Validate iOS Release Manifest and app.json Configuration
-  const appJsonPath = resolve(process.cwd(), 'apps/mobile/app.json');
+  const appJsonPath = resolve(process.cwd(), 'ios/app.json');
   const appJson = JSON.parse(readFileSync(appJsonPath, 'utf-8'));
   assert.equal(appJson.expo.ios.bundleIdentifier, 'com.storyforgestudio.mobile');
   assert.equal(appJson.expo.scheme, 'filmstudio');

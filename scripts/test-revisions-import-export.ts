@@ -5,12 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresContentRepository } from '../apps/api/src/database/postgres-content.repository.js';
-import { ContentService } from '../apps/api/src/modules/content/content.service.js';
-import type { PermissionService } from '../apps/api/src/modules/authorization/permission.service.js';
-import type { AuditService } from '../apps/api/src/modules/audit/audit.service.js';
+import { PostgresContentRepository } from '../backend/src/database/postgres-content.repository.js';
+import { ContentService } from '../backend/src/modules/content/content.service.js';
+import type { PermissionService } from '../backend/src/modules/authorization/permission.service.js';
+import type { AuditService } from '../backend/src/modules/audit/audit.service.js';
 import { paginateScreenplay } from '@film-studio/pagination';
-import type { MutationContext } from '../apps/api/src/database/postgres-tenant.repository.js';
+import type { MutationContext } from '../backend/src/database/postgres-tenant.repository.js';
 
 const userOne = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';
 const userTwo = '018f4ce4-82c4-7808-ae50-28293c570bd5';

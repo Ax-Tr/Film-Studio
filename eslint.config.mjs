@@ -19,7 +19,7 @@ export default [
   },
   eslint.configs.recommended,
   {
-    files: ['apps/web/public/sw.js'],
+    files: ['frontend/public/sw.js'],
     languageOptions: {
       globals: {
         ...globals.serviceworker,

@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
 import { createPgConfig } from '@electric-sql/pglite/node-postgres';
 import { Pool } from 'pg';
-import { PostgresSyncRepository } from '../apps/api/src/database/postgres-sync.repository.js';
+import { PostgresSyncRepository } from '../backend/src/database/postgres-sync.repository.js';
 import { decodeSyncCursor, type ClientOperation } from '@film-studio/sync-core';
 
 const userOne = '018f4ce4-7a86-7f2e-96df-bf4e914f21d4';
