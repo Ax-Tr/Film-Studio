@@ -6,8 +6,20 @@ export const appEnvironmentSchema = z
     APP_ENV: z.enum(['development', 'test', 'staging', 'production']),
     API_HOST: z.string().min(1).default('127.0.0.1'),
     API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
-    DATABASE_URL: z.string().url().startsWith('postgresql://'),
-    REDIS_URL: z.string().url().startsWith('redis://'),
+    DATABASE_URL: z
+      .string()
+      .url()
+      .refine(
+        (val) => val.startsWith('postgresql://') || val.startsWith('postgres://'),
+        { message: 'Must start with postgresql:// or postgres://' },
+      ),
+    REDIS_URL: z
+      .string()
+      .url()
+      .refine(
+        (val) => val.startsWith('redis://') || val.startsWith('rediss://'),
+        { message: 'Must start with redis:// or rediss://' },
+      ),
     OBJECT_STORAGE_ENDPOINT: z.string().url(),
     OBJECT_STORAGE_REGION: z.string().min(1),
     OBJECT_STORAGE_BUCKET: z.string().min(3),

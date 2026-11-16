@@ -22,7 +22,9 @@ async function bootstrap(): Promise<void> {
   });
   application.enableShutdownHooks();
 
-  await application.listen(environment.API_PORT, environment.API_HOST);
+  const port = process.env.PORT ? Number(process.env.PORT) : environment.API_PORT;
+  const host = process.env.HOST ?? (environment.APP_ENV === 'production' ? '0.0.0.0' : environment.API_HOST);
+  await application.listen(port, host);
 }
 
 void bootstrap();

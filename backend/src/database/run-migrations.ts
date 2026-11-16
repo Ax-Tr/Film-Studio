@@ -44,7 +44,17 @@ async function run(): Promise<void> {
     pgliteDb = new PGlite(dataDir);
     pool = new Pool(createPgConfig(pgliteDb));
   } else {
-    pool = new Pool({ connectionString, max: 1 });
+    const useSsl =
+      connectionString.includes('sslmode=require') ||
+      connectionString.includes('supabase.co') ||
+      connectionString.includes('pooler.supabase.com');
+    const rejectUnauthorized =
+      process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
+    pool = new Pool({
+      connectionString,
+      max: 1,
+      ...(useSsl ? { ssl: { rejectUnauthorized } } : {}),
+    });
   }
 
   const client = await pool.connect();

@@ -1,0 +1,99 @@
+services:
+  # ============================================================================
+  # 1. Backend API (NestJS)
+  # ============================================================================
+  - type: web
+    name: film-studio-api
+    runtime: docker
+    dockerfilePath: ./infra/docker/Dockerfile.backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: "4000"
+      - key: DATABASE_URL
+        sync: false # Connect to Supabase Connection Pooler: postgresql://postgres.[REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        value: "false"
+      - key: REDIS_URL
+        sync: false # Connect to Upstash Redis: rediss://default:[PASSWORD]@[HOST]:6379
+      - key: OBJECT_STORAGE_ENDPOINT
+        sync: false # Connect to Supabase Storage: https://[REF].supabase.co/storage/v1/s3
+      - key: OBJECT_STORAGE_REGION
+        value: us-east-1
+      - key: OBJECT_STORAGE_BUCKET
+        value: film-studio-assets
+      - key: OBJECT_STORAGE_ACCESS_KEY
+        sync: false # Supabase S3 Access Key
+      - key: OBJECT_STORAGE_SECRET_KEY
+        sync: false # Supabase S3 Secret Key
+      - key: ALLOWED_ORIGINS
+        sync: false # e.g. https://film-studio-web.onrender.com
+      - key: WEB_APP_URL
+        sync: false # e.g. https://film-studio-web.onrender.com
+      - key: OIDC_ISSUER_URL
+        sync: false # e.g. https://accounts.google.com
+      - key: OIDC_CLIENT_ID
+        sync: false
+      - key: OIDC_CLIENT_SECRET
+        sync: false
+      - key: OIDC_WEB_REDIRECT_URI
+        sync: false # e.g. https://film-studio-web.onrender.com/auth/complete
+      - key: AUTH_TRANSACTION_ENCRYPTION_KEY
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+
+  # ============================================================================
+  # 2. Frontend Web Application (Next.js 16)
+  # ============================================================================
+  - type: web
+    name: film-studio-web
+    runtime: docker
+    dockerfilePath: ./infra/docker/Dockerfile.frontend
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: API_URL
+        fromService:
+          type: web
+          name: film-studio-api
+          property: host
+
+  # ============================================================================
+  # 3. Background Jobs Worker (Queue & File Processing)
+  # ============================================================================
+  - type: worker
+    name: film-studio-worker
+    runtime: docker
+    dockerfilePath: ./infra/docker/Dockerfile.worker
+    plan: free
+    region: oregon
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: OBJECT_STORAGE_ENDPOINT
+        sync: false
+      - key: OBJECT_STORAGE_BUCKET
+        value: film-studio-assets
+      - key: OBJECT_STORAGE_ACCESS_KEY
+        sync: false
+      - key: OBJECT_STORAGE_SECRET_KEY
+        sync: false

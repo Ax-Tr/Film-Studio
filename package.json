@@ -14,6 +14,7 @@
     "check": "pnpm boundaries:check && pnpm secrets:check && pnpm config:check && pnpm lint && pnpm build && pnpm typecheck && pnpm db:test:migration && pnpm db:test:canonical && pnpm db:test:sync && pnpm db:test:jobs && pnpm db:test:web && pnpm test:editor && pnpm test:sync:center && pnpm db:test:characters && pnpm db:test:revisions && pnpm db:test:story && pnpm db:test:intelligence && pnpm db:test:continuity && pnpm db:test:aigateway && pnpm db:test:aiproposal && pnpm db:test:aifilmdev && pnpm db:test:breakdown && pnpm db:test:scheduling && pnpm db:test:budget && pnpm db:test:collab && pnpm db:test:admin && pnpm db:test:quotas && pnpm db:test:knowledge && pnpm db:test:interop && pnpm test:qualification && pnpm test:launch && pnpm db:test:webrc && pnpm db:test:mobile && pnpm db:test:mobile:editor && pnpm db:test:mobile:sync && pnpm db:test:androidrc && pnpm test:ios && pnpm test:ios:editor && pnpm test:ios:sync && pnpm test:iosrc && pnpm test",
     "clean": "turbo run clean",
     "config:check": "node scripts/validate-config.mjs",
+    "db:migrate": "pnpm --filter @film-studio/api db:migrate",
     "dev": "turbo run dev --parallel",
     "db:test:migration": "tsx scripts/test-identity-migration.ts",
     "db:test:canonical": "tsx scripts/test-canonical-model.ts",

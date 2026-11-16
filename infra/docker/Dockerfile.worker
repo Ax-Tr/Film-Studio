@@ -1,0 +1,28 @@
+FROM node:24-bookworm-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS builder
+WORKDIR /app
+
+# Copy dependency configuration
+COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
+COPY tsconfig.base.json ./
+
+# Copy required workspaces for worker daemon
+COPY packages ./packages
+COPY workers ./workers
+
+# Install dependencies and build
+RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @film-studio/contracts build && \
+    pnpm --filter @film-studio/jobs build
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=builder /app /app
+
+CMD ["node", "workers/jobs/dist/index.js"]

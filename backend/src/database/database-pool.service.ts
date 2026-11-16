@@ -22,12 +22,20 @@ export class DatabasePoolService implements OnApplicationShutdown {
       this.pgliteDb = new PGlite(dataDir);
       this.pool = new Pool(createPgConfig(this.pgliteDb));
     } else {
+      const useSsl =
+        connectionString.includes('sslmode=require') ||
+        connectionString.includes('supabase.co') ||
+        connectionString.includes('pooler.supabase.com');
+      const rejectUnauthorized =
+        process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
+
       this.pool = new Pool({
         connectionString,
         application_name: 'film-studio-api',
         max: 20,
         idleTimeoutMillis: 30_000,
-        connectionTimeoutMillis: 5_000,
+        connectionTimeoutMillis: 10_000,
+        ...(useSsl ? { ssl: { rejectUnauthorized } } : {}),
       });
     }
   }
