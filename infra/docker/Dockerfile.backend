@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy dependency configuration
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
-COPY tsconfig.base.json ./
+COPY tsconfig*.json ./
 
 # Copy required workspaces
 COPY packages ./packages
@@ -18,9 +18,9 @@ COPY infra ./infra
 
 # Install dependencies and build
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @film-studio/contracts build && \
+RUN pnpm --filter @film-studio/screenplay-model build && \
+    pnpm --filter @film-studio/contracts build && \
     pnpm --filter @film-studio/domain build && \
-    pnpm --filter @film-studio/screenplay-model build && \
     pnpm --filter @film-studio/sync-core build && \
     pnpm --filter @film-studio/pagination build && \
     pnpm --filter @film-studio/jobs build && \

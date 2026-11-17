@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy dependency configuration
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
-COPY tsconfig.base.json ./
+COPY tsconfig*.json ./
 
 # Copy required workspaces for frontend
 COPY packages ./packages
