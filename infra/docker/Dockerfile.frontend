@@ -32,7 +32,7 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV HOST=0.0.0.0
+ENV HOSTNAME=0.0.0.0
 
 # Copy Next.js standalone build and static assets
 COPY --from=builder /app/frontend/.next/standalone ./
