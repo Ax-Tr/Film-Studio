@@ -9,7 +9,6 @@ WORKDIR /app
 # Copy dependency configuration
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml ./
 COPY tsconfig*.json ./
-
 # Copy required workspaces
 COPY packages ./packages
 COPY workers ./workers
