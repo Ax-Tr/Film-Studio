@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws --version
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 565828851021.dkr.ecr.ap-south-1.amazonaws.com
+      - REPOSITORY_URI_BACKEND=565828851021.dkr.ecr.ap-south-1.amazonaws.com/film-studio-backend
+      - REPOSITORY_URI_FRONTEND=565828851021.dkr.ecr.ap-south-1.amazonaws.com/film-studio-frontend
+      - IMAGE_TAG=latest
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - echo "Building backend Docker image..."
+      - docker build -f infra/docker/Dockerfile.backend -t $REPOSITORY_URI_BACKEND:$IMAGE_TAG .
+      - echo "Building frontend Docker image..."
+      - docker build -f infra/docker/Dockerfile.frontend -t $REPOSITORY_URI_FRONTEND:$IMAGE_TAG .
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "Pushing backend image to Amazon ECR..."
+      - docker push $REPOSITORY_URI_BACKEND:$IMAGE_TAG
+      - echo "Pushing frontend image to Amazon ECR..."
+      - docker push $REPOSITORY_URI_FRONTEND:$IMAGE_TAG
+      - echo "Successfully pushed all images to Amazon ECR!"
