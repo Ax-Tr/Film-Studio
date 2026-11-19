@@ -32,7 +32,7 @@ export default function FilmWorkspacePage(props: FilmWorkspacePageProps) {
     setError(null);
     try {
       const [filmRes, docsRes] = await Promise.all([
-        fetch(`/films/${filmId}`, { headers: { accept: 'application/json' } }),
+        fetch(`/v1/films/${filmId}`, { headers: { accept: 'application/json' } }),
         fetch(`/v1/films/${filmId}/documents`, { headers: { accept: 'application/json' } }),
       ]);
 

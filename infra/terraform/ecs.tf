@@ -169,7 +169,7 @@ resource "aws_lb_listener_rule" "api_routing" {
 
   condition {
     path_pattern {
-      values = ["/v1/*", "/health", "/ready"]
+      values = ["/v1/*", "/auth/*", "/health", "/ready"]
     }
   }
 }

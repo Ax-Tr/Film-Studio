@@ -67,14 +67,19 @@ export function Header() {
                 <span className="session-user">
                   {session.email ?? session.userId.slice(0, 8)}
                 </span>
-                <a href="/auth/web/start" className="btn btn-secondary btn-sm">
+                <a href="/v1/auth/web/logout" className="btn btn-secondary btn-sm">
                   {t.auth.signOut}
                 </a>
               </div>
             ) : (
-              <a href="/auth/web/start" className="btn btn-primary btn-sm">
-                {t.auth.signIn}
-              </a>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <a href="/v1/auth/demo" className="btn btn-primary btn-sm">
+                  ⚡ {t.auth.signIn}
+                </a>
+                <a href="/v1/auth/web/start" className="btn btn-secondary btn-sm">
+                  Google
+                </a>
+              </div>
             )}
           </div>
         </div>

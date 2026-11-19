@@ -20,6 +20,13 @@ async function bootstrap(): Promise<void> {
     bodyParser: true,
   });
 
+  application.use((req: any, _res: any, next: any) => {
+    if (typeof req.url === 'string' && req.url.startsWith('/auth/')) {
+      req.url = '/v1' + req.url;
+    }
+    next();
+  });
+
   application.setGlobalPrefix('v1', { exclude: ['health', 'ready'] });
   application.use(helmet());
   application.use(cookieParser());

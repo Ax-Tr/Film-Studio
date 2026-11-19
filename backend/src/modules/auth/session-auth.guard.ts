@@ -42,10 +42,8 @@ export class SessionAuthGuard implements CanActivate {
   }
 
   private accessCookie(request: AuthenticatedRequest): string | undefined {
-    const name = `${this.environment.SESSION_COOKIE_SECURE ? '__Host-' : ''}film_access`;
-    const value = (request.cookies as Record<string, unknown> | undefined)?.[
-      name
-    ];
+    const cookies = request.cookies as Record<string, unknown> | undefined;
+    const value = cookies?.['__Host-film_access'] ?? cookies?.['film_access'];
     return typeof value === 'string' ? value : undefined;
   }
 

@@ -36,6 +36,22 @@ export class AuthFlowService {
     };
   }
 
+  async demo(deviceId: string, now = new Date()): Promise<IssuedSession> {
+    const identity = await this.identities.resolveOrProvision({
+      claims: {
+        iss: 'https://demo.filmstudio.internal',
+        sub: 'demo-lead-producer',
+        name: 'Lead Producer (Demo)',
+        email: 'producer@filmstudio.internal',
+        email_verified: true,
+      },
+      deviceId,
+      platform: 'web',
+      now,
+    });
+    return this.sessions.issue(identity.userId, identity.deviceId, now);
+  }
+
   async complete(
     callbackUrl: URL,
     binding: string,

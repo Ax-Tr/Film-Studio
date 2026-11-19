@@ -165,7 +165,7 @@ export default function AdminConsolePage() {
       }
 
       try {
-        const filmsRes = await fetch('/films', { headers: { accept: 'application/json' } });
+        const filmsRes = await fetch('/v1/films', { headers: { accept: 'application/json' } });
         if (filmsRes.ok) {
           const data = (await filmsRes.json()) as unknown[];
           if (Array.isArray(data) && active) {
@@ -728,9 +728,12 @@ export default function AdminConsolePage() {
               </div>
             </div>
 
-            <div style={{ marginTop: '24px' }}>
-              <a href="/auth/web/start" className="btn btn-secondary btn-sm">
-                🔄 Re-authenticate via OIDC IdP (Cognito / Google)
+            <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+              <a href="/v1/auth/demo" className="btn btn-primary btn-sm">
+                ⚡ Quick Demo Sign-In
+              </a>
+              <a href="/v1/auth/web/start" className="btn btn-secondary btn-sm">
+                🔄 Re-authenticate via OIDC IdP
               </a>
             </div>
           </div>

@@ -24,14 +24,14 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/films', {
+      const response = await fetch('/v1/films', {
         headers: { accept: 'application/json' },
       });
       if (response.ok) {
         const data = (await response.json()) as FilmResource[];
         setFilms(data);
       } else if (response.status === 401) {
-        // Unauthenticated in preview mode: show empty state with sign-in guidance
+        // Unauthenticated: show clean empty state
         setFilms([]);
       } else {
         setError(t.common.error);
@@ -57,7 +57,7 @@ export default function DashboardPage() {
       // If user has films, use the first film's organizationId, else create organization
       let organizationId = films[0]?.organizationId;
       if (!organizationId) {
-        const orgRes = await fetch('/organizations', {
+        const orgRes = await fetch('/v1/organizations', {
           method: 'POST',
           headers: { 'content-type': 'application/json', accept: 'application/json' },
           body: JSON.stringify({ name: 'Studio Organization' }),
@@ -65,11 +65,14 @@ export default function DashboardPage() {
         if (orgRes.ok) {
           const org = (await orgRes.json()) as { id: string };
           organizationId = org.id;
+        } else if (orgRes.status === 401) {
+          window.location.href = '/v1/auth/demo';
+          return;
         }
       }
 
       if (organizationId) {
-        const res = await fetch(`/organizations/${organizationId}/films`, {
+        const res = await fetch(`/v1/organizations/${organizationId}/films`, {
           method: 'POST',
           headers: { 'content-type': 'application/json', accept: 'application/json' },
           body: JSON.stringify({ title: newTitle.trim() }),
@@ -92,7 +95,7 @@ export default function DashboardPage() {
 
   const handleArchive = async (filmId: string) => {
     try {
-      const res = await fetch(`/films/${filmId}/archive`, {
+      const res = await fetch(`/v1/films/${filmId}/archive`, {
         method: 'POST',
         headers: { accept: 'application/json' },
       });
@@ -110,7 +113,7 @@ export default function DashboardPage() {
 
   const handleRestore = async (filmId: string) => {
     try {
-      const res = await fetch(`/films/${filmId}/restore`, {
+      const res = await fetch(`/v1/films/${filmId}/restore`, {
         method: 'POST',
         headers: { accept: 'application/json' },
       });
@@ -211,13 +214,21 @@ export default function DashboardPage() {
                 : ''}
             </p>
             {activeTab === 'active' && (
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="btn btn-primary"
-              >
-                {t.projects.createProject}
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="btn btn-primary"
+                >
+                  {t.projects.createProject}
+                </button>
+                <a
+                  href="/v1/auth/demo"
+                  className="btn btn-secondary"
+                >
+                  ⚡ Quick Demo Login
+                </a>
+              </div>
             )}
           </div>
         ) : (

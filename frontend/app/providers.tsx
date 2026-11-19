@@ -83,7 +83,7 @@ export function AppProviders({ children }: { readonly children: ReactNode }) {
   const refreshSession = async () => {
     setLoadingSession(true);
     try {
-      const response = await fetch('/me/session', {
+      const response = await fetch('/v1/me/session', {
         headers: { accept: 'application/json' },
       });
       if (response.ok) {

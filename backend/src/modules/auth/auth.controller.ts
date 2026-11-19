@@ -77,12 +77,40 @@ export class AuthController {
     );
     await this.recordSessionEvent(request, issued.principal, 'auth.login');
     this.setSessionCookies(response, issued.tokens);
-    response.clearCookie(this.cookieName('oidc'), this.cookieOptions());
+    response.clearCookie(this.cookieName('oidc', request), this.cookieOptions(request));
     response.redirect(
       303,
       new URL('/auth/complete', this.required(this.environment.WEB_APP_URL))
         .href,
     );
+  }
+
+  @Get('demo')
+  async demoLogin(@Req() request: Request, @Res() response: Response) {
+    const deviceId = this.deviceId(request);
+    const issued = await this.authFlow.demo(deviceId);
+    await this.recordSessionEvent(request, issued.principal, 'auth.login');
+    this.setSessionCookies(response, issued.tokens, request);
+    const redirectUrl = this.environment.WEB_APP_URL || '/';
+    response.redirect(303, redirectUrl);
+  }
+
+  @Get('web/logout')
+  async logoutWebGet(@Req() request: Request, @Res() response: Response) {
+    try {
+      const accessToken = (request.cookies as Record<string, unknown> | undefined)?.[
+        this.cookieName('access', request)
+      ] ?? (request.cookies as Record<string, unknown> | undefined)?.['film_access'];
+      if (typeof accessToken === 'string' && accessToken.length > 0) {
+        const principal = await this.sessions.authenticate(accessToken);
+        await this.sessions.revoke(principal.sessionId, 'user_logout');
+      }
+    } catch {
+      // Ignore if token is already expired or invalid
+    }
+    this.clearSessionCookies(response, request);
+    const redirectUrl = this.environment.WEB_APP_URL || '/';
+    response.redirect(303, redirectUrl);
   }
 
   @Post('web/refresh')
@@ -170,26 +198,31 @@ export class AuthController {
       accessTokenExpiresAt: string;
       refreshTokenExpiresAt: string;
     },
+    request?: Request,
   ): void {
-    response.cookie(this.cookieName('access'), tokens.accessToken, {
-      ...this.cookieOptions(),
+    const opts = this.cookieOptions(request);
+    response.cookie(this.cookieName('access', request), tokens.accessToken, {
+      ...opts,
       expires: new Date(tokens.accessTokenExpiresAt),
     });
-    response.cookie(this.cookieName('refresh'), tokens.refreshToken, {
-      ...this.cookieOptions(),
+    response.cookie(this.cookieName('refresh', request), tokens.refreshToken, {
+      ...opts,
       expires: new Date(tokens.refreshTokenExpiresAt),
     });
   }
 
-  private clearSessionCookies(response: Response): void {
-    response.clearCookie(this.cookieName('access'), this.cookieOptions());
-    response.clearCookie(this.cookieName('refresh'), this.cookieOptions());
+  private clearSessionCookies(response: Response, request?: Request): void {
+    const opts = this.cookieOptions(request);
+    response.clearCookie(this.cookieName('access', request), opts);
+    response.clearCookie(this.cookieName('refresh', request), opts);
+    response.clearCookie('film_access', { ...opts, secure: false });
+    response.clearCookie('film_refresh', { ...opts, secure: false });
   }
 
   private deviceId(request: Request): string {
     const existing = (request.cookies as Record<string, unknown> | undefined)?.[
-      this.cookieName('device')
-    ];
+      this.cookieName('device', request)
+    ] ?? (request.cookies as Record<string, unknown> | undefined)?.['film_device'];
     return typeof existing === 'string' &&
       uuidSchema.safeParse(existing).success
       ? existing
@@ -197,25 +230,39 @@ export class AuthController {
   }
 
   private requiredCookie(request: Request, name: string): string {
-    const value = (request.cookies as Record<string, unknown> | undefined)?.[
-      name
-    ];
+    const cookies = request.cookies as Record<string, unknown> | undefined;
+    const value =
+      cookies?.[name] ??
+      (name.startsWith('__Host-')
+        ? cookies?.[name.replace('__Host-', '')]
+        : cookies?.[`__Host-${name}`]);
     if (typeof value !== 'string' || value.length < 1) {
       throw new Error(`Required ${name} cookie is missing.`);
     }
     return value;
   }
 
-  private cookieName(suffix: string): string {
-    return `${this.environment.SESSION_COOKIE_SECURE ? '__Host-' : ''}film_${suffix}`;
+  private isRequestSecure(request?: Request): boolean {
+    if (!this.environment.SESSION_COOKIE_SECURE) return false;
+    if (request) {
+      const proto = request.header('x-forwarded-proto') || request.protocol;
+      return proto === 'https';
+    }
+    return false;
   }
 
-  private cookieOptions() {
+  private cookieName(suffix: string, request?: Request): string {
+    const secure = this.isRequestSecure(request);
+    return `${secure ? '__Host-' : ''}film_${suffix}`;
+  }
+
+  private cookieOptions(request?: Request) {
+    const secure = this.isRequestSecure(request);
     return {
       httpOnly: true,
       path: '/',
       sameSite: 'lax' as const,
-      secure: this.environment.SESSION_COOKIE_SECURE,
+      secure,
     };
   }
 

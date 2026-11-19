@@ -9,6 +9,7 @@ on:
       - 'frontend/**'
       - 'packages/**'
       - 'infra/docker/**'
+      - 'infra/database/**'
       - '.github/workflows/deploy-aws.yml'
   workflow_dispatch:
 
@@ -52,3 +53,8 @@ jobs:
         run: |
           docker build -f infra/docker/Dockerfile.frontend -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Force New ECS Deployment
+        run: |
+          aws ecs update-service --cluster film-studio-production-cluster --service film-studio-production-backend-svc --force-new-deployment
+          aws ecs update-service --cluster film-studio-production-cluster --service film-studio-production-frontend-svc --force-new-deployment
