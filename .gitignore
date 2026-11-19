@@ -41,3 +41,13 @@ apps/mobile/ios/
 architecture.html
 output/
 tmp/
+
+# Terraform local state and secrets
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
