@@ -211,6 +211,7 @@ resource "aws_ecs_task_definition" "backend" {
           name  = "DATABASE_URL"
           value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}?sslmode=require"
         },
+        { name = "DATABASE_SSL_REJECT_UNAUTHORIZED", value = "false" },
         { name = "REDIS_URL", value = var.redis_url },
         { name = "OBJECT_STORAGE_ENDPOINT", value = "https://s3.${var.aws_region}.amazonaws.com" },
         { name = "OBJECT_STORAGE_REGION", value = var.aws_region },
@@ -220,6 +221,12 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "OIDC_ISSUER_URL", value = var.oidc_issuer_url },
         { name = "OIDC_CLIENT_ID", value = var.oidc_client_id },
         { name = "OIDC_CLIENT_SECRET", value = var.oidc_client_secret },
+        { name = "OIDC_WEB_REDIRECT_URI", value = "http://${aws_lb.main.dns_name}/auth/web/callback" },
+        { name = "OIDC_ANDROID_REDIRECT_URI", value = "https://${aws_lb.main.dns_name}/auth/android/callback" },
+        { name = "OIDC_IOS_REDIRECT_URI", value = "https://${aws_lb.main.dns_name}/auth/ios/callback" },
+        { name = "WEB_APP_URL", value = "http://${aws_lb.main.dns_name}" },
+        { name = "AUTH_TRANSACTION_ENCRYPTION_KEY", value = "Kx7y9Z8w2V4u1T0s3R5q6P8o9N0m1L2k3J4h5G6f7E8" },
+        { name = "SESSION_COOKIE_SECURE", value = "true" },
         { name = "APP_SESSION_SECRET", value = var.app_session_secret },
         { name = "ALLOWED_ORIGINS", value = "http://${aws_lb.main.dns_name}" }
       ]
