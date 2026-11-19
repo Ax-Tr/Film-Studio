@@ -22,10 +22,23 @@ export function Header() {
   return (
     <header role="banner" className="app-header">
       <div className="header-inner">
-        <Link href="/" className="logo-link" aria-label={t.app.title}>
-          <span className="logo-symbol" aria-hidden="true">🎬</span>
-          <span className="logo-text">{t.app.title}</span>
-        </Link>
+        <div className="header-left">
+          <Link href="/" className="logo-link" aria-label={t.app.title}>
+            <span className="logo-symbol" aria-hidden="true">🎬</span>
+            <span className="logo-text">{t.app.title}</span>
+          </Link>
+          <nav className="header-nav" aria-label="Main Navigation">
+            <Link href="/" className="header-nav-link">
+              {t.projects.title}
+            </Link>
+            <Link href="/admin" className="header-nav-link">
+              Admin
+            </Link>
+            <Link href="/support" className="header-nav-link">
+              Diagnostics
+            </Link>
+          </nav>
+        </div>
 
         <div className="header-actions">
           <div className="locale-selector">

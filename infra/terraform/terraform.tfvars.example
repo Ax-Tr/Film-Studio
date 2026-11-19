@@ -1,0 +1,26 @@
+# ------------------------------------------------------------------------------
+# Film Studio — AWS Production Terraform Variables Template
+# ------------------------------------------------------------------------------
+
+aws_region  = "ap-south-1" # Mumbai (or us-east-1 for N. Virginia)
+environment = "production"
+project_name = "film-studio"
+
+# Database Configuration
+db_name              = "filmstudio"
+db_username          = "filmstudio_admin"
+db_password          = "ReplaceWithYourStrongPostgresPassword2026!"
+db_instance_class    = "db.t4g.micro" # Free Tier eligible, or db.t4g.medium for high traffic
+db_allocated_storage = 20
+
+# Container Images (from your Amazon ECR repository)
+backend_image  = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/film-studio-backend:latest"
+frontend_image = "123456789012.dkr.ecr.ap-south-1.amazonaws.com/film-studio-frontend:latest"
+
+# OpenID Connect (Cognito User Pool or Google OAuth 2.0)
+oidc_issuer_url    = "https://accounts.google.com" # or "https://cognito-idp.ap-south-1.amazonaws.com/<user-pool-id>"
+oidc_client_id     = "YOUR_OIDC_CLIENT_ID"
+oidc_client_secret = "YOUR_OIDC_CLIENT_SECRET"
+
+# Security & Session Encryption (32+ characters)
+app_session_secret = "YOUR_HIGH_ENTROPY_32_CHAR_SESSION_SECRET_ABC123"
