@@ -50,8 +50,11 @@ export async function runMigrations(): Promise<void> {
       connectionString.includes('pooler.supabase.com');
     const rejectUnauthorized =
       process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
+    const effectiveConnectionString = rejectUnauthorized
+      ? connectionString
+      : connectionString.replace(/([?&])sslmode=[^&]*/gu, '$1sslmode=no-verify');
     pool = new Pool({
-      connectionString,
+      connectionString: effectiveConnectionString,
       max: 1,
       ...(useSsl ? { ssl: { rejectUnauthorized } } : {}),
     });

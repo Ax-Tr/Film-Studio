@@ -28,9 +28,12 @@ export class DatabasePoolService implements OnApplicationShutdown {
         connectionString.includes('pooler.supabase.com');
       const rejectUnauthorized =
         process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
+      const effectiveConnectionString = rejectUnauthorized
+        ? connectionString
+        : connectionString.replace(/([?&])sslmode=[^&]*/gu, '$1sslmode=no-verify');
 
       this.pool = new Pool({
-        connectionString,
+        connectionString: effectiveConnectionString,
         application_name: 'film-studio-api',
         max: 20,
         idleTimeoutMillis: 30_000,
