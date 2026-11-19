@@ -5,9 +5,17 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module.js';
 import { ApiExceptionFilter } from './common/api-exception.filter.js';
+import { runMigrations } from './database/run-migrations.js';
 
 async function bootstrap(): Promise<void> {
   const environment = parseAppEnvironment(process.env);
+
+  try {
+    await runMigrations();
+  } catch (error) {
+    console.error('Database migration auto-run notice:', error);
+  }
+
   const application = await NestFactory.create(AppModule, {
     bodyParser: true,
   });

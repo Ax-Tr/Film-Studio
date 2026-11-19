@@ -12,7 +12,7 @@ interface AppliedMigration {
   checksum: string;
 }
 
-async function run(): Promise<void> {
+export async function runMigrations(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (connectionString === undefined) {
     throw new Error('DATABASE_URL is required to run migrations.');
@@ -108,4 +108,11 @@ async function run(): Promise<void> {
   }
 }
 
-void run();
+const isCli =
+  typeof process !== 'undefined' &&
+  process.argv[1] !== undefined &&
+  fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isCli) {
+  void runMigrations();
+}

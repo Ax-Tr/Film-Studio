@@ -211,6 +211,12 @@ resource "aws_ecs_task_definition" "backend" {
           name  = "DATABASE_URL"
           value = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.postgres.endpoint}/${var.db_name}?sslmode=require"
         },
+        { name = "REDIS_URL", value = var.redis_url },
+        { name = "OBJECT_STORAGE_ENDPOINT", value = "https://s3.${var.aws_region}.amazonaws.com" },
+        { name = "OBJECT_STORAGE_REGION", value = var.aws_region },
+        { name = "OBJECT_STORAGE_BUCKET", value = aws_s3_bucket.assets.id },
+        { name = "OBJECT_STORAGE_ACCESS_KEY", value = var.object_storage_access_key },
+        { name = "OBJECT_STORAGE_SECRET_KEY", value = var.object_storage_secret_key },
         { name = "OIDC_ISSUER_URL", value = var.oidc_issuer_url },
         { name = "OIDC_CLIENT_ID", value = var.oidc_client_id },
         { name = "OIDC_CLIENT_SECRET", value = var.oidc_client_secret },

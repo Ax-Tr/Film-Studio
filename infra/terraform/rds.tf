@@ -29,7 +29,7 @@ resource "aws_db_parameter_group" "pg16" {
 resource "aws_db_instance" "postgres" {
   identifier                  = "${var.project_name}-${var.environment}-db"
   engine                      = "postgres"
-  engine_version              = "16.2"
+  engine_version              = "16.11"
   instance_class              = var.db_instance_class
   allocated_storage           = var.db_allocated_storage
   max_allocated_storage       = 100
@@ -44,7 +44,7 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot         = true
   publicly_accessible         = false
   auto_minor_version_upgrade  = true
-  backup_retention_period     = 7
+  backup_retention_period     = 1
   deletion_protection         = false
 
   tags = {

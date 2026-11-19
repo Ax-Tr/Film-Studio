@@ -109,3 +109,23 @@ variable "app_session_secret" {
   sensitive   = true
   default     = "film-studio-production-session-signing-secret-key-32chars"
 }
+
+variable "redis_url" {
+  description = "Redis connection URL for caching and sync"
+  type        = string
+  default     = "redis://127.0.0.1:6379"
+}
+
+variable "object_storage_access_key" {
+  description = "AWS Access Key for S3 storage access"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "object_storage_secret_key" {
+  description = "AWS Secret Key for S3 storage access"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
